@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 import argparse
 from collections import OrderedDict
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 from models import *
 from dataset import ImageDataset
 
