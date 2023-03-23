@@ -44,7 +44,7 @@ def train(model, dataloader, criterion, optimizer):
             acc = accuracy(preds, labels)
             total_acc += acc
             progress.set_postfix(OrderedDict(loss=f'{loss.item():5.3f}', acc=f'{acc:5.3f}'))
-        print(f'train {epoch:3d} loss={total_loss/(i+1):7.5f} acc={total_acc/(i+1):7.5f}')
+        print(f'train {epoch:3d}: loss={total_loss/(i+1):7.5f} acc={total_acc/(i+1):7.5f}')
     return 
 
 def val(model, dataloader, criterion):
@@ -64,7 +64,7 @@ def val(model, dataloader, criterion):
                 acc = accuracy(preds, labels)
                 total_acc += acc
                 progress.set_postfix(OrderedDict(loss=f'{loss.item():5.3f}', acc=f'{acc:5.3f}'))
-            print(f'val   {epoch:3d} loss={total_loss/(i+1):7.5f} acc={total_acc/(i+1):7.5f}')
+            print(f'val   {epoch:3d}: loss={total_loss/(i+1):7.5f} acc={total_acc/(i+1):7.5f}')
     return
 
 
