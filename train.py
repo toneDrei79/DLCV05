@@ -8,7 +8,7 @@ import argparse
 from collections import OrderedDict
 from tqdm import tqdm
 from models import *
-from dataset import ImageDataset
+# from dataset import ImageDataset
 
 
 def get_args():
@@ -48,6 +48,7 @@ def train(model, dataloader, criterion, optimizer):
         print(f'train {epoch:3d}: loss={total_loss/(i+1):7.5f} acc={total_acc/(i+1):7.5f}')
     return 
 
+
 def val(model, dataloader, criterion):
     model.eval()
 
@@ -80,15 +81,13 @@ if __name__ == '__main__':
         model = Net11().to(device)
         image_size = 256 # available: 224, 256, 512
     elif args.model == 'vgg11':
-        from torchvision.models import vgg11
-        model = vgg11(weights=None, num_classes=10).to(device)
+        model = Vgg11(num_classes=10, pretrained=False).to(device)
         image_size = 224 # available: 224
     elif args.model == 'vgg16':
-        from torchvision.models import vgg16
-        model = vgg16(weights=None, num_classes=10).to(device)
+        model = Vgg16(num_classes=10, pretrained=False).to(device)
         image_size = 224 # available: 224
     else:
-        print('Error:  No such model.')
+        print('Error: No such model.')
 
     transform = transforms.Compose([transforms.Resize((int(image_size*1.2),int(image_size*1.2))),
                                     transforms.RandomRotation(degrees=45),
