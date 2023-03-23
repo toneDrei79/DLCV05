@@ -81,7 +81,10 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
 
-    transform = transforms.Compose([transforms.Resize((512,512)),
+    transform = transforms.Compose([transforms.Resize((700,700)),
+                                    transforms.RandomRotation(degree=45),
+                                    transforms.RandomCrop((512,512)),
+                                    transforms.ColorJitter(brightness=0.3, contrast=0.5, saturation=0.2, hue=0.1),
                                     transforms.ToTensor()])
     # dataset = ImageDataset(path=args.data, transform=transform)
     dataset = datasets.ImageFolder(root=args.data, transform=transform)
