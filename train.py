@@ -14,7 +14,7 @@ from models import *
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data', type=str, default='./Flowers/Train', help='directry path of the dataset')
-    parser.add_argument('--model', type=str, default='net8', help='available models: net8, net11, vgg11, vgg16')
+    parser.add_argument('--model', type=str, default='net8', help='available models: net8, net11, vgg11, vgg11trained, vgg16, vgg16trained')
     parser.add_argument('--epoch', type=int, default=10, help='number of epoch')
     parser.add_argument('--batch', type=int, default=32, help='batch size')
     parser.add_argument('--lr', type=int, default=10, help='learning rate')
@@ -83,8 +83,14 @@ if __name__ == '__main__':
     elif args.model == 'vgg11':
         model = Vgg11(n_class=10, pretrained=False).to(device)
         image_size = 224 # available: 224
+    elif args.model == 'vgg11trained':
+        model = Vgg11(n_class=10, pretrained=True).to(device)
+        image_size = 224 # available: 224
     elif args.model == 'vgg16':
         model = Vgg16(n_class=10, pretrained=False).to(device)
+        image_size = 224 # available: 224
+    elif args.model == 'vgg16trained':
+        model = Vgg16(n_class=10, pretrained=True).to(device)
         image_size = 224 # available: 224
     else:
         print('Error: No such model.')
