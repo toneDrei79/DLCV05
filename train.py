@@ -78,10 +78,10 @@ if __name__ == '__main__':
         model = Net11()
     elif args.model == 'vgg11':
         from torchvision.models import vgg11
-        model = vgg11(pretrained=False)
+        model = vgg11(weights=None)
     elif args.model == 'vgg16':
         from torchvision.models import vgg16
-        model = vgg16(pretrained=False)
+        model = vgg16(weights=None)
     else:
         print('Error:  No such model.')
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
