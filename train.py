@@ -80,7 +80,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
 
-    transform = transforms.Compose([transforms.Resize((256,256)),
+    transform = transforms.Compose([transforms.Resize((512,512)),
                                     transforms.ToTensor()])
     dataset = ImageDataset(path=args.data, transform=transform)
     train_dataset, val_dataset = train_test_split(dataset, test_size=0.2, shuffle=True)
