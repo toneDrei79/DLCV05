@@ -21,8 +21,8 @@ def get_args():
 
 
 def accuracy(preds, labals):
-    preds = torch.argmax(preds, dim=1)
-    return np.count_nonzero(preds==labals) / preds.shape[0]
+    _preds = torch.argmax(preds, dim=1)
+    return np.count_nonzero(_preds.cpu()==labals.cpu()) / _preds.shape[0]
 
 
 
