@@ -1,5 +1,6 @@
 
 from torch.utils.data import DataLoader
+from torchvision import datasets
 import torchvision.transforms as transforms
 from sklearn.model_selection import train_test_split
 import numpy as np
@@ -82,7 +83,8 @@ if __name__ == '__main__':
 
     transform = transforms.Compose([transforms.Resize((512,512)),
                                     transforms.ToTensor()])
-    dataset = ImageDataset(path=args.data, transform=transform)
+    # dataset = ImageDataset(path=args.data, transform=transform)
+    dataset = datasets.ImageFolder(root=args.data, transform=transform)
     train_dataset, val_dataset = train_test_split(dataset, test_size=0.2, shuffle=True)
     train_dataloader = DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
     val_dataloader = DataLoader(val_dataset, batch_size=args.batch, shuffle=True)
