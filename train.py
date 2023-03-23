@@ -1,20 +1,20 @@
 
 from torch.utils.data import DataLoader
-from torchvision import datasets
+from torchvision import datasets, models
 import torchvision.transforms as transforms
 from sklearn.model_selection import train_test_split
 import numpy as np
 import argparse
 from collections import OrderedDict
 from tqdm import tqdm
-from models import *
+from mymodels import *
 from dataset import ImageDataset
 
 
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data', type=str, default='./Flowers/Train', help='directry path of the dataset')
-    parser.add_argument('--model', type=str, default='Net8', help='available models: Net8, Net11')
+    parser.add_argument('--model', type=str, default='net8', help='available models: net8, net11, vgg16')
     parser.add_argument('--epoch', type=int, default=10, help='number of epoch')
     parser.add_argument('--batch', type=int, default=32, help='batch size')
     parser.add_argument('--lr', type=int, default=10, help='learning rate')
@@ -72,12 +72,16 @@ def val(model, dataloader, criterion):
 if __name__ == '__main__':
     args = get_args()
 
-    if args.model == 'Net8':
+    
+
+    if args.model == 'net8':
         model = Net8()
-    elif args.model == 'Net11':
+    elif args.model == 'net11':
         model = Net11()
+    elif args.model == 'vgg16':
+        model = models.vgg16(pretrained=True)
     else:
-        print('Error: no such model')
+        print('Error:  No such model.')
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
 
