@@ -4,3 +4,5 @@ numpy
 scikit-learn
 matplotlib
 tqdm
+tensorboard
+torch-tb-profiler
