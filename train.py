@@ -2,9 +2,10 @@
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 from sklearn.model_selection import train_test_split
+import numpy as np
 import argparse
 from collections import OrderedDict
-from tqdm import tqdm
+from tqdm.notebook import tqdm
 from models import *
 from dataset import ImageDataset
 
@@ -19,11 +20,19 @@ def get_args():
     return parser.parse_args()
 
 
+def accuracy(preds, labals):
+    preds = torch.argmax(preds, dim=1)
+    return np.count_nonzero(preds==labals) / preds.shape[0]
+
+
 def train(model, dataloader, criterion, optimizer):
     model.train()
+
+    total_loss = 0
+    total_acc = 0
     with tqdm(dataloader, total=len(dataloader)) as progress:
         progress.set_description(f'train {epoch:3d}')
-        for images, labels in progress:
+        for i, (images, labels) in enumerate(progress):
             images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
             preds = model(images)
@@ -31,20 +40,31 @@ def train(model, dataloader, criterion, optimizer):
             loss.backward()
             optimizer.step()
 
-            progress.set_postfix(OrderedDict(loss=f'{loss.item():6.4f}'))
+            total_loss += loss.item()
+            acc = accuracy(preds, labels)
+            total_acc += acc
+            progress.set_postfix(OrderedDict(loss=f'{loss.item():5.3f}', acc=f'{acc:5.3f}'))
+        print(f'train {epoch:3d} loss={total_loss/(i+1):7.5f} acc={total_acc/(i+1):7.5f}')
     return 
 
 def val(model, dataloader, criterion):
     model.eval()
+
+    total_loss = 0
+    total_acc = 0
     with torch.no_grad():
         with tqdm(dataloader, total=len(dataloader)) as progress:
             progress.set_description(f'val   {epoch:3d}')
-            for images, labels in progress:
+            for i, (images, labels) in enumerate(progress):
                 images, labels = images.to(device), labels.to(device)
                 preds = model(images)
                 loss = criterion(preds, labels)
 
-                progress.set_postfix(OrderedDict(loss=f'{loss.item():6.4f}'))
+                total_loss += loss.item()
+                acc = accuracy(preds, labels)
+                total_acc += acc
+                progress.set_postfix(OrderedDict(loss=f'{loss.item():5.3f}', acc=f'{acc:5.3f}'))
+            print(f'val   {epoch:3d} loss={total_loss/(i+1):7.5f} acc={total_acc/(i+1):7.5f}')
     return
 
 
@@ -52,7 +72,7 @@ if __name__ == '__main__':
     args = get_args()
 
     if args.model == 'Net8':
-        model = Net8()
+        model = Net8(n1=8, n2=8, n3=16, n4=64, size_image=256)
     elif args.model == 'Net11':
         model = Net11()
     else:
@@ -60,7 +80,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
 
-    transform = transforms.Compose([transforms.Resize((512,512)),
+    transform = transforms.Compose([transforms.Resize((256,256)),
                                     transforms.ToTensor()])
     dataset = ImageDataset(path=args.data, transform=transform)
     train_dataset, val_dataset = train_test_split(dataset, test_size=0.2, shuffle=True)
