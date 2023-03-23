@@ -72,7 +72,7 @@ if __name__ == '__main__':
     args = get_args()
 
     if args.model == 'Net8':
-        model = Net8(n1=8, n2=8, n3=16, n4=64, size_image=256)
+        model = Net8()
     elif args.model == 'Net11':
         model = Net11()
     else:
