@@ -81,10 +81,10 @@ if __name__ == '__main__':
         model = Net11().to(device)
         image_size = 256 # available: 224, 256, 512
     elif args.model == 'vgg11':
-        model = Vgg11(n_classes=10, pretrained=False).to(device)
+        model = Vgg11(n_class=10, pretrained=False).to(device)
         image_size = 224 # available: 224
     elif args.model == 'vgg16':
-        model = Vgg16(n_classes=10, pretrained=False).to(device)
+        model = Vgg16(n_class=10, pretrained=False).to(device)
         image_size = 224 # available: 224
     else:
         print('Error: No such model.')
