@@ -1,5 +1,6 @@
 /.venv
-
+/Flowers
 /TD5.pdf
 /__pycache__
+*.DS_Store
 /checkpoints
