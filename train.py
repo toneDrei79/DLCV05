@@ -12,8 +12,10 @@ from dataset import ImageDataset
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data', type=str, default='./Flowers/Train', help='directry path of the dataset')
-    parser.add_argument('--batch', type=int, default=32, help='batch size')
+    parser.add_argument('--model', type=str, default='Net8', help='available models: Net8, Net11')
     parser.add_argument('--epoch', type=int, default=10, help='number of epoch')
+    parser.add_argument('--batch', type=int, default=32, help='batch size')
+    parser.add_argument('--lr', type=int, default=10, help='learning rate')
     return parser.parse_args()
 
 
@@ -49,7 +51,12 @@ def val(model, dataloader, criterion):
 if __name__ == '__main__':
     args = get_args()
 
-    model = Net()
+    if args.model == 'Net8':
+        model = Net8()
+    elif args.model == 'Net11':
+        model = Net11()
+    else:
+        print('Error: no such model')
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
 
