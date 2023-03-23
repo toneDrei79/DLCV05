@@ -72,26 +72,27 @@ def val(model, dataloader, criterion):
 if __name__ == '__main__':
     args = get_args()
 
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     if args.model == 'net8':
-        model = Net8()
+        model = Net8().to(device)
+        image_size = 256 # available: 224, 256, 512
     elif args.model == 'net11':
-        model = Net11()
+        model = Net11().to(device)
+        image_size = 256 # available: 224, 256, 512
     elif args.model == 'vgg11':
         from torchvision.models import vgg11
-        model = vgg11(weights=None)
+        model = vgg11(weights=None, num_classes=10).to(device)
+        image_size = 224 # available: 224
     elif args.model == 'vgg16':
         from torchvision.models import vgg16
-        model = vgg16(weights=None)
+        model = vgg16(weights=None, num_classes=10).to(device)
+        image_size = 224 # available: 224
     else:
         print('Error:  No such model.')
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model.to(device)
 
-    image_size = 256
-    transform = transforms.Compose([transforms.Resize((512,512)),
+    transform = transforms.Compose([transforms.Resize((int(image_size*1.2),int(image_size*1.2))),
                                     transforms.RandomRotation(degrees=45),
-                                    transforms.RandomCrop((400,400)),
-                                    transforms.Resize((image_size,image_size)),
+                                    transforms.RandomCrop((image_size,image_size)),
                                     transforms.ColorJitter(brightness=0.3, contrast=0.5, saturation=0.2, hue=0.1),
                                     transforms.ToTensor()])
     # dataset = ImageDataset(path=args.data, transform=transform)
