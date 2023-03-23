@@ -57,3 +57,25 @@ class Net11(nn.Module):
         z = torch.flatten(z, start_dim=1)
         y = self.classifier(z)
         return y
+
+
+
+import argparse
+
+
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model', type=str, default='Net8', help='available models: Net8, Net11')
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = get_args()
+
+    if args.model == 'Net8':
+        model = Net8()
+    elif args.model == 'Net11':
+        model = Net11()
+    else:
+        print('Error: no such model')
+    print(model)
