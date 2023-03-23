@@ -7,8 +7,11 @@ import numpy as np
 import argparse
 from collections import OrderedDict
 from tqdm import tqdm
+from datetime import datetime
 from models import *
 # from dataset import ImageDataset
+
+from torch.utils.tensorboard import SummaryWriter
 
 
 def get_args():
@@ -45,8 +48,9 @@ def train(model, dataloader, criterion, optimizer):
             acc = accuracy(preds, labels)
             total_acc += acc
             progress.set_postfix(OrderedDict(loss=f'{loss.item():5.3f}', acc=f'{acc:5.3f}'))
-        print(f'train {epoch:3d}: loss={total_loss/(i+1):7.5f} acc={total_acc/(i+1):7.5f}')
-    return 
+        
+        # print(f'train {epoch:3d}: loss={total_loss/(i+1):7.5f} acc={total_acc/(i+1):7.5f}')
+    return total_loss/(i+1), total_acc/(i+1)
 
 
 def val(model, dataloader, criterion):
@@ -66,8 +70,9 @@ def val(model, dataloader, criterion):
                 acc = accuracy(preds, labels)
                 total_acc += acc
                 progress.set_postfix(OrderedDict(loss=f'{loss.item():5.3f}', acc=f'{acc:5.3f}'))
-            print(f'val   {epoch:3d}: loss={total_loss/(i+1):7.5f} acc={total_acc/(i+1):7.5f}')
-    return
+            
+            # print(f'val   {epoch:3d}: loss={total_loss/(i+1):7.5f} acc={total_acc/(i+1):7.5f}')
+    return total_loss/(i+1), total_acc/(i+1)
 
 
 if __name__ == '__main__':
@@ -75,7 +80,7 @@ if __name__ == '__main__':
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     if args.model == 'net8':
-        model = Net8().to(device)
+        model = Net8(n1=8,n2=8,n3=16,n4=32).to(device)
         image_size = 256 # available: 224, 256, 512
     elif args.model == 'net11':
         model = Net11().to(device)
@@ -108,8 +113,9 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), weight_decay=0.01, lr=1e-4)
 
-    loss_total = 0.0
-    acc_total = 0.0
+    log = SummaryWriter(log_dir='.logs/{}/'.format(datetime.utcnow().strftime('%Y%m%d%H%M%S')))
     for epoch in range(args.epoch):
-        train(model, train_dataloader, criterion, optimizer)
-        val(model, val_dataloader, criterion)
+        train_loss, train_acc = train(model, train_dataloader, criterion, optimizer)
+        val_loss, val_acc = val(model, val_dataloader, criterion)
+        log.add_scalars('loss', {'train': train_loss, 'val': val_loss}, epoch)
+        log.add_scalars('acc', {'train': train_acc, 'val': val_acc}, epoch)
