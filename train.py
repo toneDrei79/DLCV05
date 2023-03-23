@@ -49,13 +49,10 @@ def val(model, dataloader, criterion):
 if __name__ == '__main__':
     args = get_args()
 
-    # model = Net(n1=8, n2=8, n3=16, n4=16, n_class=10, size_image=256)
     model = Net()
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
 
-    # transform = transforms.Compose([transforms.Resize((256,256)),
-    #                                 transforms.ToTensor()])
     transform = transforms.Compose([transforms.Resize((512,512)),
                                     transforms.ToTensor()])
     dataset = ImageDataset(path=args.data, transform=transform)
