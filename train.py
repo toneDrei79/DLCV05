@@ -101,15 +101,18 @@ if __name__ == '__main__':
     args = get_args()
 
     image_size = args.input_size
-    train_transform = transforms.Compose([transforms.Resize((int(image_size*1.2),int(image_size*1.2))),
+    transform_aug = transforms.Compose([transforms.Resize((int(image_size*1.2),int(image_size*1.2))),
                                           transforms.RandomRotation(degrees=15),
                                           transforms.RandomCrop((image_size,image_size)),
                                           transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.05),
                                           transforms.ToTensor()])
-    val_transform = transforms.Compose([transforms.Resize((image_size,image_size)),
+    transform_basic = transforms.Compose([transforms.Resize((image_size,image_size)),
                                         transforms.ToTensor()])
-    _train_dataset = datasets.ImageFolder(root=args.data, transform=train_transform)
-    _val_dataset = datasets.ImageFolder(root=args.data, transform=val_transform)
+    if args.augment:
+        _train_dataset = datasets.ImageFolder(root=args.data, transform=transform_aug)
+    else:
+        _train_dataset = datasets.ImageFolder(root=args.data, transform=transform_basic)
+    _val_dataset = datasets.ImageFolder(root=args.data, transform=transform_basic)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     criterion = nn.CrossEntropyLoss()
