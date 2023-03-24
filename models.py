@@ -4,7 +4,7 @@ import torch.nn as nn
 
 class Net8(nn.Module):
 
-    def __init__(self, n1=16, n2=32, n3=64, n4=128, n_class=10, size_image=256):
+    def __init__(self, n1=16, n2=32, n3=64, n4=128, n_class=10, size_image=128):
         super().__init__()
         self.features = nn.Sequential(nn.Conv2d(in_channels=3, out_channels=n1, kernel_size=3, stride=1, padding=1), nn.ReLU(),
                                       nn.Conv2d(in_channels=n1, out_channels=n1, kernel_size=3, stride=1, padding=1), nn.ReLU(),
@@ -31,7 +31,7 @@ class Net8(nn.Module):
 
 class Net11(nn.Module):
 
-    def __init__(self, n1=16, n2=32, n3=64, n4=128, n5=1024, n_class=10, size_image=256):
+    def __init__(self, n1=16, n2=32, n3=64, n4=128, n5=1024, n_class=10, size_image=128):
         super().__init__()
         self.features = nn.Sequential(nn.Conv2d(in_channels=3, out_channels=n1, kernel_size=3, stride=1, padding=1), nn.ReLU(),
                                       nn.Conv2d(in_channels=n1, out_channels=n1, kernel_size=3, stride=1, padding=1), nn.ReLU(),
@@ -61,7 +61,7 @@ class Net11(nn.Module):
 
 class Vgg11(nn.Module):
     
-    def __init__(self, n_class=10, size_image=224, pretrained=False):
+    def __init__(self, n_class=10, size_image=128, pretrained=False):
         super().__init__()
         
         from torchvision.models import vgg11
@@ -84,7 +84,7 @@ class Vgg11(nn.Module):
 
 class Vgg16(nn.Module):
     
-    def __init__(self, n_class=10, size_image=224, pretrained=False):
+    def __init__(self, n_class=10, size_image=128, pretrained=False):
         super().__init__()
         
         from torchvision.models import vgg16
