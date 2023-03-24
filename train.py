@@ -26,6 +26,23 @@ def get_args():
     return parser.parse_args()
 
 
+def get_model(key):
+    if key == 'net8':
+        return Net8().to(device), 256 # input size: 224, 256, 512
+    elif key == 'net11':
+        return Net11().to(device), 256 # input size: 224, 256, 512
+    elif key == 'vgg11':
+        return Vgg11(n_class=10, pretrained=False).to(device), 224 # input size: 224
+    elif key == 'vgg11trained':
+        return Vgg11(n_class=10, pretrained=True).to(device), 224 # input size: 224
+    elif key == 'vgg16':
+        return Vgg16(n_class=10, pretrained=False).to(device), 224 # input size: 224
+    elif key == 'vgg16trained':
+        return Vgg16(n_class=10, pretrained=True).to(device), 224 # input size: 224
+    else:
+        print('Error: No such model.')
+
+
 def accuracy(preds, labals):
     _preds = torch.argmax(preds.cpu(), dim=1)
     return np.count_nonzero(_preds==labals) / _preds.shape[0]
@@ -75,26 +92,7 @@ if __name__ == '__main__':
     args = get_args()
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    if args.model == 'net8':
-        model = Net8().to(device)
-        image_size = 256 # available: 224, 256, 512
-    elif args.model == 'net11':
-        model = Net11().to(device)
-        image_size = 256 # available: 224, 256, 512
-    elif args.model == 'vgg11':
-        model = Vgg11(n_class=10, pretrained=False).to(device)
-        image_size = 224 # available: 224
-    elif args.model == 'vgg11trained':
-        model = Vgg11(n_class=10, pretrained=True).to(device)
-        image_size = 224 # available: 224
-    elif args.model == 'vgg16':
-        model = Vgg16(n_class=10, pretrained=False).to(device)
-        image_size = 224 # available: 224
-    elif args.model == 'vgg16trained':
-        model = Vgg16(n_class=10, pretrained=True).to(device)
-        image_size = 224 # available: 224
-    else:
-        print('Error: No such model.')
+    _, image_size = get_model(args.model)
 
     train_transform = transforms.Compose([transforms.Resize((int(image_size*1.2),int(image_size*1.2))),
                                           transforms.RandomRotation(degrees=15),
@@ -113,6 +111,7 @@ if __name__ == '__main__':
     kf = KFold(n_splits=args.k, shuffle=True, random_state=0)
     for i, (train_idxes, val_idxes) in enumerate(kf.split(_train_dataset)):
         print(f'cross-validation {i:2d}:')
+        model, _ = get_model(args.model)
         train_dataset = Subset(_train_dataset, train_idxes)
         val_dataset = Subset(_val_dataset, val_idxes)
         train_dataloader = DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
