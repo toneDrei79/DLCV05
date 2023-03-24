@@ -107,8 +107,9 @@ if __name__ == '__main__':
 
     log = SummaryWriter(log_dir='.logs/{}/'.format(datetime.utcnow().strftime('%Y%m%d%H%M%S')))
     kf = KFold(n_splits=args.k, shuffle=True, random_state=0)
-    for i, (train_idxes, val_idxes) in enumerate(kf.split(_train_dataset)):
-        print(f'cross-validation {i:2d}:')
+    sum_train_loss, sum_train_acc, sum_val_loss, sum_val_acc = np.zeros(args.epoch), np.zeros(args.epoch), np.zeros(args.epoch), np.zeros(args.epoch)
+    for k, (train_idxes, val_idxes) in enumerate(kf.split(_train_dataset)):
+        print(f'cross-validation {k:2d}:')
         model, _ = select_model(args.model)
         optimizer = torch.optim.AdamW(model.parameters(), weight_decay=0.01, lr=args.lr)
         train_dataset = Subset(_train_dataset, train_idxes)
@@ -116,13 +117,12 @@ if __name__ == '__main__':
         train_dataloader = DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
         val_dataloader = DataLoader(val_dataset, batch_size=args.batch, shuffle=True)
 
-        sum_train_loss, sum_train_acc, sum_val_loss, sum_val_acc = 0, 0, 0, 0
         for e in range(args.epoch):
             train_loss, train_acc = train(model, train_dataloader, criterion, optimizer)
             val_loss, val_acc = val(model, val_dataloader, criterion)
-            sum_train_loss += train_loss
-            sum_train_acc += train_acc
-            sum_val_loss += val_loss
-            sum_val_acc += val_acc
-            log.add_scalars('loss', {'train': sum_train_loss/(e+1), 'val': sum_val_loss/(e+1)}, e)
-            log.add_scalars('acc', {'train': sum_train_acc/(e+1), 'val': sum_val_acc/(e+1)}, e)
+            sum_train_loss[e] += train_loss
+            sum_train_acc[e] += train_acc
+            sum_val_loss[e] += val_loss
+            sum_val_acc[e] += val_acc
+            log.add_scalars('loss', {'train': sum_train_loss[e]/(k+1), 'val': sum_val_loss[e]/(k+1)}, e)
+            log.add_scalars('acc', {'train': sum_train_acc[e]/(k+1), 'val': sum_val_acc[e]/(k+1)}, e)
