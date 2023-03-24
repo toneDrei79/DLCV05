@@ -76,7 +76,7 @@ if __name__ == '__main__':
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     if args.model == 'net8':
-        model = Net8(n1=8,n2=8,n3=16,n4=32).to(device)
+        model = Net8().to(device)
         image_size = 256 # available: 224, 256, 512
     elif args.model == 'net11':
         model = Net11().to(device)
@@ -112,7 +112,7 @@ if __name__ == '__main__':
     log = SummaryWriter(log_dir='.logs/{}/'.format(datetime.utcnow().strftime('%Y%m%d%H%M%S')))
     kf = KFold(n_splits=args.k, shuffle=True, random_state=0)
     for i, (train_idxes, val_idxes) in enumerate(kf.split(_train_dataset)):
-        print(f'cross-validation {i:2d}')
+        print(f'cross-validation {i:2d}:')
         train_dataset = Subset(_train_dataset, train_idxes)
         val_dataset = Subset(_val_dataset, val_idxes)
         train_dataloader = DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
