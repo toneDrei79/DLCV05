@@ -5,6 +5,7 @@ from sklearn.model_selection import KFold
 from torchvision import datasets
 import torchvision.transforms as transforms
 import pickle
+import os
 import numpy as np
 import argparse
 from collections import OrderedDict
@@ -17,13 +18,15 @@ from torch.utils.tensorboard import SummaryWriter
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data', type=str, default='./Flowers/Train', help='directry path of the dataset')
-    parser.add_argument('--model', type=str, default='net8', help='available models: net8, net11, vgg11, vgg11trained, vgg16, vgg16trained')
-    parser.add_argument('--input_size', type=int, default=128, help='possible sizes: 128, 224(recommended for vgg, resnet), 256')
-    parser.add_argument('--epoch', type=int, default=10, help='number of epoch')
-    parser.add_argument('--k', type=int, default=5, help='number of k-fold split')
-    parser.add_argument('--batch', type=int, default=32, help='batch size')
-    parser.add_argument('--lr', type=int, default=1e-4, help='learning rate')
+    parser.add_argument('--data', type=str, default='./Flowers/Train/', help='directry path of the dataset ... default=./Flowers/Train/')
+    parser.add_argument('--model', type=str, default='net8', help='available models: net8, net11, vgg11, vgg11trained, vgg16, vgg16trained, resnet18, resnet18trained ... default=net8')
+    parser.add_argument('--input_size', type=int, default=128, help='possible sizes: 128, 224(recommended for vgg, resnet), 256 ... default=128')
+    parser.add_argument('--epoch', type=int, default=50, help='number of epoch ... default=50')
+    parser.add_argument('--k', type=int, default=5, help='number of k-fold split ... default=5')
+    parser.add_argument('--batch', type=int, default=32, help='batch size ... default=32')
+    parser.add_argument('--lr', type=float, default=1e-4, help='learning rate ... default=1e-4')
+    parser.add_argument('--augment', type=bool, default=False, help='data augmentation ... default=False')
+    parser.add_argument('--save_interval', type=int, default=10, help='interval for saving model ... default=10')
     return parser.parse_args()
 
 
@@ -97,9 +100,6 @@ def val(model, dataloader, criterion):
 if __name__ == '__main__':
     args = get_args()
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    criterion = nn.CrossEntropyLoss()
-
     image_size = args.input_size
     train_transform = transforms.Compose([transforms.Resize((int(image_size*1.2),int(image_size*1.2))),
                                           transforms.RandomRotation(degrees=15),
@@ -111,9 +111,14 @@ if __name__ == '__main__':
     _train_dataset = datasets.ImageFolder(root=args.data, transform=train_transform)
     _val_dataset = datasets.ImageFolder(root=args.data, transform=val_transform)
 
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    criterion = nn.CrossEntropyLoss()
+
+    kf = KFold(n_splits=args.k, shuffle=True, random_state=0)
     datetime_str = datetime.utcnow().strftime('%Y%m%d%H%M%S')
     log = SummaryWriter(log_dir=f'./.logs/{datetime_str}/')
-    kf = KFold(n_splits=args.k, shuffle=True, random_state=0)
+    savedir = f'./checkpoints/{datetime_str}/'
+    os.mkdir(savedir)
     sum_train_loss, sum_train_acc, sum_val_loss, sum_val_acc = np.zeros(args.epoch), np.zeros(args.epoch), np.zeros(args.epoch), np.zeros(args.epoch)
     for k, (train_idxes, val_idxes) in enumerate(kf.split(_train_dataset)):
         print(f'cross-validation {k:2d}:')
@@ -133,5 +138,5 @@ if __name__ == '__main__':
             sum_val_acc[e] += val_acc
             log.add_scalars('loss', {'train': sum_train_loss[e]/(k+1), 'val': sum_val_loss[e]/(k+1)}, e)
             log.add_scalars('acc', {'train': sum_train_acc[e]/(k+1), 'val': sum_val_acc[e]/(k+1)}, e)
-            if k == args.k-1 and (e+1) % 10 == 0:
-                pickle.dump(model, open(f'./checkpoints/{datetime_str}/{args.model}_{e:03d}.pkl', mode='wb'))
+            if k == 0 and (e+1) % args.save_interval == 0:
+                pickle.dump(model, open(f'{savedir}{args.model}_{e:03d}.pkl', mode='wb'))
