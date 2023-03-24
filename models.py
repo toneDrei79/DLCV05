@@ -119,13 +119,17 @@ if __name__ == '__main__':
     args = get_args()
 
     if args.model == 'net8':
-        model = Net8()
+        model = Net8(n1=8,n2=8,n3=16,n4=32)
     elif args.model == 'net11':
         model = Net11()
     elif args.model == 'vgg11':
-        model = Vgg11()
+        model = Vgg11(n_class=10, pretrained=False)
+    elif args.model == 'vgg11trained':
+        model = Vgg11(n_class=10, pretrained=True)
     elif args.model == 'vgg16':
-        model = Vgg16()
+        model = Vgg16(n_class=10, pretrained=False)
+    elif args.model == 'vgg16trained':
+        model = Vgg16(n_class=10, pretrained=True)
     else:
         print('Error: No such model.')
 
