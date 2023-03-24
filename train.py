@@ -4,10 +4,10 @@ from torch.utils.data.dataset import Subset
 from sklearn.model_selection import KFold
 from torchvision import datasets
 import torchvision.transforms as transforms
+import pickle
 import numpy as np
 import argparse
 from collections import OrderedDict
-import random
 from tqdm import tqdm
 from datetime import datetime
 from models import *
@@ -111,7 +111,8 @@ if __name__ == '__main__':
     _train_dataset = datasets.ImageFolder(root=args.data, transform=train_transform)
     _val_dataset = datasets.ImageFolder(root=args.data, transform=val_transform)
 
-    log = SummaryWriter(log_dir='.logs/{}/'.format(datetime.utcnow().strftime('%Y%m%d%H%M%S')))
+    datetime_str = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+    log = SummaryWriter(log_dir=f'./.logs/{datetime_str}/')
     kf = KFold(n_splits=args.k, shuffle=True, random_state=0)
     sum_train_loss, sum_train_acc, sum_val_loss, sum_val_acc = np.zeros(args.epoch), np.zeros(args.epoch), np.zeros(args.epoch), np.zeros(args.epoch)
     for k, (train_idxes, val_idxes) in enumerate(kf.split(_train_dataset)):
@@ -132,3 +133,5 @@ if __name__ == '__main__':
             sum_val_acc[e] += val_acc
             log.add_scalars('loss', {'train': sum_train_loss[e]/(k+1), 'val': sum_val_loss[e]/(k+1)}, e)
             log.add_scalars('acc', {'train': sum_train_acc[e]/(k+1), 'val': sum_val_acc[e]/(k+1)}, e)
+            if k == args.k-1 and (e+1) % 10 == 0:
+                pickle.dump(model, open(f'./checkpoints/{datetime_str}/{args.model}_{e:03d}.pkl', mode='wb'))
