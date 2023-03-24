@@ -41,9 +41,9 @@ def select_model(key):
     elif key == 'vgg16trained':
         return Vgg16(n_class=10, pretrained=True).to(device)
     elif args.model == 'resnet18':
-        return ResNet18(n_class=10, pretrained=False)
+        return ResNet18(n_class=10, pretrained=False).to(device)
     elif args.model == 'resnet18trained':
-        return ResNet18(n_class=10, pretrained=True)
+        return ResNet18(n_class=10, pretrained=True).to(device)
     else:
         print('Error: No such model.')
         return None

@@ -137,7 +137,6 @@ class ResNet18(nn.Module):
         z = self.layer1(z)
         z = self.layer2(z)
         z = self.layer3(z)
-        z = self.layer4(z)
         z = self.avgpool(z)
         z = torch.flatten(z, start_dim=1)
         y = self.classifier(z)
@@ -159,7 +158,7 @@ if __name__ == '__main__':
     args = get_args()
 
     if args.model == 'net8':
-        model = Net8(n1=8,n2=8,n3=16,n4=32)
+        model = Net8()
     elif args.model == 'net11':
         model = Net11()
     elif args.model == 'vgg11':
