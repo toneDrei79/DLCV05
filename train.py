@@ -22,12 +22,12 @@ def get_args():
     parser.add_argument('--epoch', type=int, default=10, help='number of epoch')
     parser.add_argument('--k', type=int, default=5, help='number of k-fold split')
     parser.add_argument('--batch', type=int, default=32, help='batch size')
-    parser.add_argument('--lr', type=int, default=10, help='learning rate')
+    parser.add_argument('--lr', type=int, default=1e-4, help='learning rate')
     return parser.parse_args()
 
 
 def accuracy(preds, labals):
-    _preds = torch.argmax(preds, dim=1)
+    _preds = torch.argmax(preds.cpu(), dim=1)
     return np.count_nonzero(_preds==labals) / _preds.shape[0]
 
 
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     train_transform = transforms.Compose([transforms.Resize((int(image_size*1.2),int(image_size*1.2))),
                                           transforms.RandomRotation(degrees=15),
                                           transforms.RandomCrop((image_size,image_size)),
-                                        #   transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.05),
+                                          transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.05),
                                           transforms.ToTensor()])
     val_transform = transforms.Compose([transforms.Resize((image_size,image_size)),
                                         transforms.ToTensor()])
@@ -113,18 +113,18 @@ if __name__ == '__main__':
     kf = KFold(n_splits=args.k, shuffle=True, random_state=0)
     for i, (train_idxes, val_idxes) in enumerate(kf.split(_train_dataset)):
         print(f'cross-validation {i:2d}')
-        # train_dataset = Subset(_train_dataset, train_idxes)
-        # val_dataset = Subset(_val_dataset, val_idxes)
-        train_dataloader = DataLoader(_train_dataset, batch_size=args.batch, shuffle=True)
-        # val_dataloader = DataLoader(val_dataset, batch_size=args.batch, shuffle=True)
+        train_dataset = Subset(_train_dataset, train_idxes)
+        val_dataset = Subset(_val_dataset, val_idxes)
+        train_dataloader = DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
+        val_dataloader = DataLoader(val_dataset, batch_size=args.batch, shuffle=True)
 
         sum_train_loss, sum_train_acc, sum_val_loss, sum_val_acc = 0, 0, 0, 0
         for e in range(args.epoch):
             train_loss, train_acc = train(model, train_dataloader, criterion, optimizer)
-            # val_loss, val_acc = val(model, val_dataloader, criterion)
+            val_loss, val_acc = val(model, val_dataloader, criterion)
             sum_train_loss += train_loss
             sum_train_acc += train_acc
-            # sum_val_loss += val_loss
-            # sum_val_acc += val_acc
-            # log.add_scalars('loss', {'train': sum_train_loss/(e+1), 'val': sum_val_loss/(e+1)}, e)
-            # log.add_scalars('acc', {'train': sum_train_acc/(e+1), 'val': sum_val_acc/(e+1)}, e)
+            sum_val_loss += val_loss
+            sum_val_acc += val_acc
+            log.add_scalars('loss', {'train': sum_train_loss/(e+1), 'val': sum_val_loss/(e+1)}, e)
+            log.add_scalars('acc', {'train': sum_train_acc/(e+1), 'val': sum_val_acc/(e+1)}, e)
