@@ -110,19 +110,8 @@ if __name__ == '__main__':
     _train_dataset = datasets.ImageFolder(root=args.data, transform=train_transform)
     _val_dataset = datasets.ImageFolder(root=args.data, transform=val_transform)
     
-    # train_dataloader = DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
-    # val_dataloader = DataLoader(val_dataset, batch_size=args.batch, shuffle=True)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), weight_decay=0.01, lr=args.lr)
-
-    
-    # for e in range(args.e):
-    #     train_loss, train_acc = train(model, train_dataloader, criterion, optimizer)
-    #     val_loss, val_acc = val(model, val_dataloader, criterion)
-    #     log.add_scalars('loss', {'train': train_loss, 'val': val_loss}, e)
-    #     log.add_scalars('acc', {'train': train_acc, 'val': val_acc}, e)
-    
-
 
     log = SummaryWriter(log_dir='.logs/{}/'.format(datetime.utcnow().strftime('%Y%m%d%H%M%S')))
     kf = KFold(n_splits=args.k, shuffle=True, random_state=0)
