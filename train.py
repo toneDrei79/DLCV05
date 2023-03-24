@@ -26,19 +26,19 @@ def get_args():
     return parser.parse_args()
 
 
-def get_model(key):
+def select_model(key, load=True):
     if key == 'net8':
-        return Net8().to(device), 256 # input size: 224, 256, 512
+        return Net8().to(device) if load else None, 256 # input size: 224, 256, 512
     elif key == 'net11':
-        return Net11().to(device), 256 # input size: 224, 256, 512
+        return Net11().to(device) if load else None, 256 # input size: 224, 256, 512
     elif key == 'vgg11':
-        return Vgg11(n_class=10, pretrained=False).to(device), 224 # input size: 224
+        return Vgg11(n_class=10, pretrained=False).to(device) if load else None, 224 # input size: 224
     elif key == 'vgg11trained':
-        return Vgg11(n_class=10, pretrained=True).to(device), 224 # input size: 224
+        return Vgg11(n_class=10, pretrained=True).to(device) if load else None, 224 # input size: 224
     elif key == 'vgg16':
-        return Vgg16(n_class=10, pretrained=False).to(device), 224 # input size: 224
+        return Vgg16(n_class=10, pretrained=False).to(device) if load else None, 224 # input size: 224
     elif key == 'vgg16trained':
-        return Vgg16(n_class=10, pretrained=True).to(device), 224 # input size: 224
+        return Vgg16(n_class=10, pretrained=True).to(device) if load else None, 224 # input size: 224
     else:
         print('Error: No such model.')
 
@@ -92,7 +92,8 @@ if __name__ == '__main__':
     args = get_args()
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    _, image_size = get_model(args.model)
+    _, image_size = select_model(args.model, load=False)
+    criterion = nn.CrossEntropyLoss()
 
     train_transform = transforms.Compose([transforms.Resize((int(image_size*1.2),int(image_size*1.2))),
                                           transforms.RandomRotation(degrees=15),
@@ -103,15 +104,13 @@ if __name__ == '__main__':
                                         transforms.ToTensor()])
     _train_dataset = datasets.ImageFolder(root=args.data, transform=train_transform)
     _val_dataset = datasets.ImageFolder(root=args.data, transform=val_transform)
-    
-    criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.AdamW(model.parameters(), weight_decay=0.01, lr=args.lr)
 
     log = SummaryWriter(log_dir='.logs/{}/'.format(datetime.utcnow().strftime('%Y%m%d%H%M%S')))
     kf = KFold(n_splits=args.k, shuffle=True, random_state=0)
     for i, (train_idxes, val_idxes) in enumerate(kf.split(_train_dataset)):
         print(f'cross-validation {i:2d}:')
-        model, _ = get_model(args.model)
+        model, _ = select_model(args.model)
+        optimizer = torch.optim.AdamW(model.parameters(), weight_decay=0.01, lr=args.lr)
         train_dataset = Subset(_train_dataset, train_idxes)
         val_dataset = Subset(_val_dataset, val_idxes)
         train_dataloader = DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
