@@ -105,13 +105,53 @@ class Vgg16(nn.Module):
         return y
 
 
+class ResNet18(nn.Module):
+    
+    def __init__(self, n_class=10, pretrained=False):
+        super().__init__()
+        
+        from torchvision.models import resnet18, resnet50
+        if pretrained:
+            from torchvision.models import ResNet18_Weights
+            _resnet18 = resnet18(weights=ResNet18_Weights.IMAGENET1K_V1)
+        else:
+            _resnet18 = resnet18(weights=None)
+        self.conv1 = _resnet18.conv1
+        self.bn1 = _resnet18.bn1
+        self.relu = _resnet18.relu
+        self.maxpool = _resnet18.maxpool
+        self.layer1 = _resnet18.layer1
+        self.layer2 = _resnet18.layer2
+        self.layer3 = _resnet18.layer3
+        # self.layer4 = _resnet18.layer4 # skip layer4 to keep feature size
+        self.avgpool = _resnet18.avgpool
+        self.classifier = nn.Sequential(nn.Linear(in_features=256, out_features=128), nn.ReLU(),
+                                        nn.Dropout(0.5),
+                                        nn.Linear(in_features=128, out_features=n_class))
+    
+    def forward(self, x):
+        z = self.conv1(x)
+        z = self.bn1(z)
+        z = self.relu(z)
+        z = self.maxpool(z)
+        z = self.layer1(z)
+        z = self.layer2(z)
+        z = self.layer3(z)
+        z = self.layer4(z)
+        z = self.avgpool(z)
+        z = torch.flatten(z, start_dim=1)
+        y = self.classifier(z)
+        return y
+
+
+
 
 import argparse
 
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='net8', help='available models: net8, net11, vgg11, vgg16')
+    parser.add_argument('--model', type=str, default='net8', help='available models: net8, net11, vgg11, vgg11trained, vgg16, vgg16trained, resnet18, resnet18trained')
     return parser.parse_args()
 
 
@@ -130,6 +170,10 @@ if __name__ == '__main__':
         model = Vgg16(n_class=10, pretrained=False)
     elif args.model == 'vgg16trained':
         model = Vgg16(n_class=10, pretrained=True)
+    elif args.model == 'resnet18':
+        model = ResNet18(n_class=10, pretrained=False)
+    elif args.model == 'resnet18trained':
+        model = ResNet18(n_class=10, pretrained=True)
     else:
         print('Error: No such model.')
 

@@ -19,7 +19,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data', type=str, default='./Flowers/Train', help='directry path of the dataset')
     parser.add_argument('--model', type=str, default='net8', help='available models: net8, net11, vgg11, vgg11trained, vgg16, vgg16trained')
-    parser.add_argument('--input_size', type=int, default=128, help='possible sizes: 128, 224(recommended for vgg), 256')
+    parser.add_argument('--input_size', type=int, default=128, help='possible sizes: 128, 224(recommended for vgg, resnet), 256')
     parser.add_argument('--epoch', type=int, default=10, help='number of epoch')
     parser.add_argument('--k', type=int, default=5, help='number of k-fold split')
     parser.add_argument('--batch', type=int, default=32, help='batch size')
@@ -40,6 +40,10 @@ def select_model(key):
         return Vgg16(n_class=10, pretrained=False).to(device)
     elif key == 'vgg16trained':
         return Vgg16(n_class=10, pretrained=True).to(device)
+    elif args.model == 'resnet18':
+        return ResNet18(n_class=10, pretrained=False)
+    elif args.model == 'resnet18trained':
+        return ResNet18(n_class=10, pretrained=True)
     else:
         print('Error: No such model.')
         return None
