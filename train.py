@@ -1,15 +1,16 @@
 
 from torch.utils.data import DataLoader
+from torch.utils.data.dataset import Subset
+from sklearn.model_selection import KFold
 from torchvision import datasets
 import torchvision.transforms as transforms
-from sklearn.model_selection import train_test_split
 import numpy as np
 import argparse
 from collections import OrderedDict
+import random
 from tqdm import tqdm
 from datetime import datetime
 from models import *
-# from dataset import ImageDataset
 
 from torch.utils.tensorboard import SummaryWriter
 
@@ -19,6 +20,7 @@ def get_args():
     parser.add_argument('--data', type=str, default='./Flowers/Train', help='directry path of the dataset')
     parser.add_argument('--model', type=str, default='net8', help='available models: net8, net11, vgg11, vgg11trained, vgg16, vgg16trained')
     parser.add_argument('--epoch', type=int, default=10, help='number of epoch')
+    parser.add_argument('--k', type=int, default=5, help='number of k-fold split')
     parser.add_argument('--batch', type=int, default=32, help='batch size')
     parser.add_argument('--lr', type=int, default=10, help='learning rate')
     return parser.parse_args()
@@ -32,10 +34,9 @@ def accuracy(preds, labals):
 def train(model, dataloader, criterion, optimizer):
     model.train()
 
-    total_loss = 0
-    total_acc = 0
+    sum_loss, sum_acc = 0, 0
     with tqdm(dataloader, total=len(dataloader)) as progress:
-        progress.set_description(f'train {epoch:3d}')
+        progress.set_description(f'train {e:3d}')
         for i, (images, labels) in enumerate(progress):
             images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
@@ -44,35 +45,34 @@ def train(model, dataloader, criterion, optimizer):
             loss.backward()
             optimizer.step()
 
-            total_loss += loss.item()
+            sum_loss += loss.item()
             acc = accuracy(preds, labels)
-            total_acc += acc
+            sum_acc += acc
             progress.set_postfix(OrderedDict(loss=f'{loss.item():5.3f}', acc=f'{acc:5.3f}'))
         
-        # print(f'train {epoch:3d}: loss={total_loss/(i+1):7.5f} acc={total_acc/(i+1):7.5f}')
-    return total_loss/(i+1), total_acc/(i+1)
+        # print(f'train {e:3d}: loss={sum_loss/(i+1):7.5f} acc={sum_acc/(i+1):7.5f}')
+    return sum_loss/(i+1), sum_acc/(i+1)
 
 
 def val(model, dataloader, criterion):
     model.eval()
 
-    total_loss = 0
-    total_acc = 0
+    sum_loss, sum_acc = 0, 0
     with torch.no_grad():
         with tqdm(dataloader, total=len(dataloader)) as progress:
-            progress.set_description(f'val   {epoch:3d}')
+            progress.set_description(f'val   {e:3d}')
             for i, (images, labels) in enumerate(progress):
                 images, labels = images.to(device), labels.to(device)
                 preds = model(images)
                 loss = criterion(preds, labels)
 
-                total_loss += loss.item()
+                sum_loss += loss.item()
                 acc = accuracy(preds, labels)
-                total_acc += acc
+                sum_acc += acc
                 progress.set_postfix(OrderedDict(loss=f'{loss.item():5.3f}', acc=f'{acc:5.3f}'))
             
-            # print(f'val   {epoch:3d}: loss={total_loss/(i+1):7.5f} acc={total_acc/(i+1):7.5f}')
-    return total_loss/(i+1), total_acc/(i+1)
+            # print(f'val   {e:3d}: loss={sum_loss/(i+1):7.5f} acc={sum_acc/(i+1):7.5f}')
+    return sum_loss/(i+1), sum_acc/(i+1)
 
 
 if __name__ == '__main__':
@@ -100,22 +100,46 @@ if __name__ == '__main__':
     else:
         print('Error: No such model.')
 
-    transform = transforms.Compose([transforms.Resize((int(image_size*1.2),int(image_size*1.2))),
-                                    transforms.RandomRotation(degrees=45),
-                                    transforms.RandomCrop((image_size,image_size)),
-                                    transforms.ColorJitter(brightness=0.3, contrast=0.5, saturation=0.2, hue=0.1),
-                                    transforms.ToTensor()])
-    # dataset = ImageDataset(path=args.data, transform=transform)
-    dataset = datasets.ImageFolder(root=args.data, transform=transform)
-    train_dataset, val_dataset = train_test_split(dataset, test_size=0.2, shuffle=True)
-    train_dataloader = DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
-    val_dataloader = DataLoader(val_dataset, batch_size=args.batch, shuffle=True)
+    train_transform = transforms.Compose([transforms.Resize((int(image_size*1.2),int(image_size*1.2))),
+                                          transforms.RandomRotation(degrees=45),
+                                          transforms.RandomCrop((image_size,image_size)),
+                                          transforms.ColorJitter(brightness=0.3, contrast=0.5, saturation=0.2, hue=0.1),
+                                          transforms.ToTensor()])
+    val_transform = transforms.Compose([transforms.Resize((image_size,image_size)),
+                                        transforms.ToTensor()])
+    _train_dataset = datasets.ImageFolder(root=args.data, transform=train_transform)
+    _val_dataset = datasets.ImageFolder(root=args.data, transform=val_transform)
+    
+    # train_dataloader = DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
+    # val_dataloader = DataLoader(val_dataset, batch_size=args.batch, shuffle=True)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), weight_decay=0.01, lr=args.lr)
 
+    
+    # for e in range(args.e):
+    #     train_loss, train_acc = train(model, train_dataloader, criterion, optimizer)
+    #     val_loss, val_acc = val(model, val_dataloader, criterion)
+    #     log.add_scalars('loss', {'train': train_loss, 'val': val_loss}, e)
+    #     log.add_scalars('acc', {'train': train_acc, 'val': val_acc}, e)
+    
+
+
     log = SummaryWriter(log_dir='.logs/{}/'.format(datetime.utcnow().strftime('%Y%m%d%H%M%S')))
-    for epoch in range(args.epoch):
-        train_loss, train_acc = train(model, train_dataloader, criterion, optimizer)
-        val_loss, val_acc = val(model, val_dataloader, criterion)
-        log.add_scalars('loss', {'train': train_loss, 'val': val_loss}, epoch)
-        log.add_scalars('acc', {'train': train_acc, 'val': val_acc}, epoch)
+    kf = KFold(n_splits=args.k, shuffle=True, random_state=0)
+    for i, (train_idxes, val_idxes) in enumerate(kf.split(_train_dataset)):
+        print(f'cross-validation {i:2d}')
+        train_dataset = Subset(_train_dataset, train_idxes)
+        val_dataset = Subset(_val_dataset, val_idxes)
+        train_dataloader = DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
+        val_dataloader = DataLoader(val_dataset, batch_size=args.batch, shuffle=True)
+
+        sum_train_loss, sum_train_acc, sum_val_loss, sum_val_acc = 0, 0, 0, 0
+        for e in range(args.epoch):
+            train_loss, train_acc = train(model, train_dataloader, criterion, optimizer)
+            val_loss, val_acc = val(model, val_dataloader, criterion)
+            sum_train_loss += train_loss
+            sum_train_acc += train_acc
+            sum_val_loss += val_loss
+            sum_val_acc += val_acc
+            log.add_scalars('loss', {'train': sum_train_loss/(e+1), 'val': sum_val_loss/(e+1)}, e)
+            log.add_scalars('acc', {'train': sum_train_acc/(e+1), 'val': sum_val_acc/(e+1)}, e)
