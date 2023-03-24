@@ -111,7 +111,7 @@ if __name__ == '__main__':
     train_dataloader = DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
     val_dataloader = DataLoader(val_dataset, batch_size=args.batch, shuffle=True)
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.AdamW(model.parameters(), weight_decay=0.01, lr=1e-4)
+    optimizer = torch.optim.AdamW(model.parameters(), weight_decay=0.01, lr=args.lr)
 
     log = SummaryWriter(log_dir='.logs/{}/'.format(datetime.utcnow().strftime('%Y%m%d%H%M%S')))
     for epoch in range(args.epoch):
