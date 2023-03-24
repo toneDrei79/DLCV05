@@ -28,7 +28,7 @@ def get_args():
 
 def accuracy(preds, labals):
     _preds = torch.argmax(preds, dim=1)
-    return np.count_nonzero(_preds.cpu()==labals.cpu()) / _preds.shape[0]
+    return np.count_nonzero(_preds==labals) / _preds.shape[0]
 
 
 def train(model, dataloader, criterion, optimizer):
@@ -38,10 +38,9 @@ def train(model, dataloader, criterion, optimizer):
     with tqdm(dataloader, total=len(dataloader)) as progress:
         progress.set_description(f'train {e:3d}')
         for i, (images, labels) in enumerate(progress):
-            images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
-            preds = model(images)
-            loss = criterion(preds, labels)
+            preds = model(images.to(device))
+            loss = criterion(preds, labels.to(device))
             loss.backward()
             optimizer.step()
 
@@ -50,7 +49,6 @@ def train(model, dataloader, criterion, optimizer):
             sum_acc += acc
             progress.set_postfix(OrderedDict(loss=f'{loss.item():5.3f}', acc=f'{acc:5.3f}'))
         
-        # print(f'train {e:3d}: loss={sum_loss/(i+1):7.5f} acc={sum_acc/(i+1):7.5f}')
     return sum_loss/(i+1), sum_acc/(i+1)
 
 
@@ -62,16 +60,14 @@ def val(model, dataloader, criterion):
         with tqdm(dataloader, total=len(dataloader)) as progress:
             progress.set_description(f'val   {e:3d}')
             for i, (images, labels) in enumerate(progress):
-                images, labels = images.to(device), labels.to(device)
-                preds = model(images)
-                loss = criterion(preds, labels)
+                preds = model(images.to(device))
+                loss = criterion(preds, labels.to(device))
 
                 sum_loss += loss.item()
                 acc = accuracy(preds, labels)
                 sum_acc += acc
                 progress.set_postfix(OrderedDict(loss=f'{loss.item():5.3f}', acc=f'{acc:5.3f}'))
             
-            # print(f'val   {e:3d}: loss={sum_loss/(i+1):7.5f} acc={sum_acc/(i+1):7.5f}')
     return sum_loss/(i+1), sum_acc/(i+1)
 
 
@@ -101,9 +97,9 @@ if __name__ == '__main__':
         print('Error: No such model.')
 
     train_transform = transforms.Compose([transforms.Resize((int(image_size*1.2),int(image_size*1.2))),
-                                          transforms.RandomRotation(degrees=45),
+                                          transforms.RandomRotation(degrees=15),
                                           transforms.RandomCrop((image_size,image_size)),
-                                          transforms.ColorJitter(brightness=0.3, contrast=0.5, saturation=0.2, hue=0.1),
+                                        #   transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.05),
                                           transforms.ToTensor()])
     val_transform = transforms.Compose([transforms.Resize((image_size,image_size)),
                                         transforms.ToTensor()])
@@ -117,18 +113,18 @@ if __name__ == '__main__':
     kf = KFold(n_splits=args.k, shuffle=True, random_state=0)
     for i, (train_idxes, val_idxes) in enumerate(kf.split(_train_dataset)):
         print(f'cross-validation {i:2d}')
-        train_dataset = Subset(_train_dataset, train_idxes)
-        val_dataset = Subset(_val_dataset, val_idxes)
-        train_dataloader = DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
-        val_dataloader = DataLoader(val_dataset, batch_size=args.batch, shuffle=True)
+        # train_dataset = Subset(_train_dataset, train_idxes)
+        # val_dataset = Subset(_val_dataset, val_idxes)
+        train_dataloader = DataLoader(_train_dataset, batch_size=args.batch, shuffle=True)
+        # val_dataloader = DataLoader(val_dataset, batch_size=args.batch, shuffle=True)
 
         sum_train_loss, sum_train_acc, sum_val_loss, sum_val_acc = 0, 0, 0, 0
         for e in range(args.epoch):
             train_loss, train_acc = train(model, train_dataloader, criterion, optimizer)
-            val_loss, val_acc = val(model, val_dataloader, criterion)
+            # val_loss, val_acc = val(model, val_dataloader, criterion)
             sum_train_loss += train_loss
             sum_train_acc += train_acc
-            sum_val_loss += val_loss
-            sum_val_acc += val_acc
-            log.add_scalars('loss', {'train': sum_train_loss/(e+1), 'val': sum_val_loss/(e+1)}, e)
-            log.add_scalars('acc', {'train': sum_train_acc/(e+1), 'val': sum_val_acc/(e+1)}, e)
+            # sum_val_loss += val_loss
+            # sum_val_acc += val_acc
+            # log.add_scalars('loss', {'train': sum_train_loss/(e+1), 'val': sum_val_loss/(e+1)}, e)
+            # log.add_scalars('acc', {'train': sum_train_acc/(e+1), 'val': sum_val_acc/(e+1)}, e)
