@@ -121,7 +121,7 @@ if __name__ == '__main__':
     datetime_str = datetime.utcnow().strftime('%Y%m%d%H%M%S')
     log = SummaryWriter(log_dir=f'./.logs/{datetime_str}/')
     savedir = f'./checkpoints/{datetime_str}/'
-    os.mkdir(savedir)
+    os.makedirs(savedir, exist_ok=True)
     sum_train_loss, sum_train_acc, sum_val_loss, sum_val_acc = np.zeros(args.epoch), np.zeros(args.epoch), np.zeros(args.epoch), np.zeros(args.epoch)
     for k, (train_idxes, val_idxes) in enumerate(kf.split(_train_dataset)):
         print(f'cross-validation {k:2d}:')
