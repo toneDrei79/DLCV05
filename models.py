@@ -143,6 +143,28 @@ class ResNet18(nn.Module):
         return y
 
 
+def select_model(key):
+    if key == 'net8':
+        return Net8()
+    elif key == 'net11':
+        return Net11()
+    elif key == 'vgg11':
+        return Vgg11(n_class=10, pretrained=False)
+    elif key == 'vgg11trained':
+        return Vgg11(n_class=10, pretrained=True)
+    elif key == 'vgg16':
+        return Vgg16(n_class=10, pretrained=False)
+    elif key == 'vgg16trained':
+        return Vgg16(n_class=10, pretrained=True)
+    elif key == 'resnet18':
+        return ResNet18(n_class=10, pretrained=False)
+    elif key == 'resnet18trained':
+        return ResNet18(n_class=10, pretrained=True)
+    else:
+        print('Error: No such model.')
+        return None
+
+
 
 
 import argparse
@@ -156,24 +178,5 @@ def get_args():
 
 if __name__ == '__main__':
     args = get_args()
-
-    if args.model == 'net8':
-        model = Net8()
-    elif args.model == 'net11':
-        model = Net11()
-    elif args.model == 'vgg11':
-        model = Vgg11(n_class=10, pretrained=False)
-    elif args.model == 'vgg11trained':
-        model = Vgg11(n_class=10, pretrained=True)
-    elif args.model == 'vgg16':
-        model = Vgg16(n_class=10, pretrained=False)
-    elif args.model == 'vgg16trained':
-        model = Vgg16(n_class=10, pretrained=True)
-    elif args.model == 'resnet18':
-        model = ResNet18(n_class=10, pretrained=False)
-    elif args.model == 'resnet18trained':
-        model = ResNet18(n_class=10, pretrained=True)
-    else:
-        print('Error: No such model.')
-
+    model = select_model(args.model)
     print(model)

@@ -4,52 +4,11 @@ from torch.utils.data.dataset import Subset
 from sklearn.model_selection import KFold
 from torchvision import datasets
 import torchvision.transforms as transforms
-import pickle
-import os
 import numpy as np
-import argparse
 from collections import OrderedDict
 from tqdm import tqdm
-from datetime import datetime
+from utils import *
 from models import *
-
-from torch.utils.tensorboard import SummaryWriter
-
-
-def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--data', type=str, default='./Flowers/Train/', help='directry path of the dataset ... default=./Flowers/Train/')
-    parser.add_argument('--model', type=str, default='net8', help='available models: net8, net11, vgg11, vgg11trained, vgg16, vgg16trained, resnet18, resnet18trained ... default=net8')
-    parser.add_argument('--input_size', type=int, default=128, help='possible sizes: 128, 224(recommended for vgg, resnet), 256 ... default=128')
-    parser.add_argument('--epoch', type=int, default=50, help='number of epoch ... default=50')
-    parser.add_argument('--k', type=int, default=5, help='number of k-fold split ... default=5')
-    parser.add_argument('--batch', type=int, default=32, help='batch size ... default=32')
-    parser.add_argument('--lr', type=float, default=1e-4, help='learning rate ... default=1e-4')
-    parser.add_argument('--augment', type=bool, default=False, help='data augmentation ... default=False')
-    parser.add_argument('--save_interval', type=int, default=10, help='interval for saving model ... default=10')
-    return parser.parse_args()
-
-
-def select_model(key):
-    if key == 'net8':
-        return Net8().to(device)
-    elif key == 'net11':
-        return Net11().to(device)
-    elif key == 'vgg11':
-        return Vgg11(n_class=10, pretrained=False).to(device)
-    elif key == 'vgg11trained':
-        return Vgg11(n_class=10, pretrained=True).to(device)
-    elif key == 'vgg16':
-        return Vgg16(n_class=10, pretrained=False).to(device)
-    elif key == 'vgg16trained':
-        return Vgg16(n_class=10, pretrained=True).to(device)
-    elif args.model == 'resnet18':
-        return ResNet18(n_class=10, pretrained=False).to(device)
-    elif args.model == 'resnet18trained':
-        return ResNet18(n_class=10, pretrained=True).to(device)
-    else:
-        print('Error: No such model.')
-        return None
 
 
 def accuracy(preds, labals):
@@ -98,48 +57,48 @@ def val(model, dataloader, criterion):
 
 
 if __name__ == '__main__':
-    args = get_args()
-
-    image_size = args.input_size
-    transform_aug = transforms.Compose([transforms.Resize((int(image_size*1.2),int(image_size*1.2))),
-                                          transforms.RandomRotation(degrees=15),
-                                          transforms.RandomCrop((image_size,image_size)),
-                                          transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.05),
-                                          transforms.ToTensor()])
-    transform_basic = transforms.Compose([transforms.Resize((image_size,image_size)),
-                                        transforms.ToTensor()])
-    if args.augment:
-        _train_dataset = datasets.ImageFolder(root=args.data, transform=transform_aug)
-    else:
-        _train_dataset = datasets.ImageFolder(root=args.data, transform=transform_basic)
-    _val_dataset = datasets.ImageFolder(root=args.data, transform=transform_basic)
+    configs = Configs()
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     criterion = nn.CrossEntropyLoss()
+    image_size = configs.input_size
+    transform_aug = transforms.Compose([transforms.Resize((int(image_size*1.2),int(image_size*1.2))),
+                                        transforms.RandomRotation(degrees=15),
+                                        transforms.RandomCrop((image_size,image_size)),
+                                        transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.05),
+                                        transforms.ToTensor()])
+    transform_basic = transforms.Compose([transforms.Resize((image_size,image_size)),
+                                          transforms.ToTensor()])
+    if configs.augment:
+        _train_dataset = datasets.ImageFolder(root=configs.data, transform=transform_aug)
+    else:
+        _train_dataset = datasets.ImageFolder(root=configs.data, transform=transform_basic)
+    _val_dataset = datasets.ImageFolder(root=configs.data, transform=transform_basic)
 
-    kf = KFold(n_splits=args.k, shuffle=True, random_state=0)
-    datetime_str = datetime.utcnow().strftime('%Y%m%d%H%M%S')
-    log = SummaryWriter(log_dir=f'./.logs/{datetime_str}/')
-    savedir = f'./checkpoints/{datetime_str}/'
-    os.makedirs(savedir, exist_ok=True)
-    sum_train_loss, sum_train_acc, sum_val_loss, sum_val_acc = np.zeros(args.epoch), np.zeros(args.epoch), np.zeros(args.epoch), np.zeros(args.epoch)
+    checkpoint_dir = mkdir_checkpoint()
+    configs.save_configs(checkpoint_dir)
+    logger = Logger()
+
+    kf = KFold(n_splits=configs.k, shuffle=True, random_state=0)
+    sum_train_loss, sum_train_acc, sum_val_loss, sum_val_acc = np.zeros(configs.epoch), np.zeros(configs.epoch), np.zeros(configs.epoch), np.zeros(configs.epoch)
     for k, (train_idxes, val_idxes) in enumerate(kf.split(_train_dataset)):
         print(f'cross-validation {k:2d}:')
-        model = select_model(args.model)
-        optimizer = torch.optim.AdamW(model.parameters(), weight_decay=0.01, lr=args.lr)
+        model = select_model(configs.model).to(device)
+        optimizer = torch.optim.AdamW(model.parameters(), weight_decay=0.01, lr=configs.lr)
         train_dataset = Subset(_train_dataset, train_idxes)
         val_dataset = Subset(_val_dataset, val_idxes)
-        train_dataloader = DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
-        val_dataloader = DataLoader(val_dataset, batch_size=args.batch, shuffle=True)
+        train_dataloader = DataLoader(train_dataset, batch_size=configs.batch, shuffle=True)
+        val_dataloader = DataLoader(val_dataset, batch_size=configs.batch, shuffle=True)
 
-        for e in range(args.epoch):
+        for e in range(configs.epoch):
             train_loss, train_acc = train(model, train_dataloader, criterion, optimizer)
             val_loss, val_acc = val(model, val_dataloader, criterion)
+
             sum_train_loss[e] += train_loss
             sum_train_acc[e] += train_acc
             sum_val_loss[e] += val_loss
             sum_val_acc[e] += val_acc
-            log.add_scalars('loss', {'train': sum_train_loss[e]/(k+1), 'val': sum_val_loss[e]/(k+1)}, e)
-            log.add_scalars('acc', {'train': sum_train_acc[e]/(k+1), 'val': sum_val_acc[e]/(k+1)}, e)
-            if k == 0 and (e+1) % args.save_interval == 0:
-                pickle.dump(model, open(f'{savedir}{args.model}_{e:03d}.pkl', mode='wb'))
+            logger.log(sum_train_loss[e]/(k+1), sum_val_loss[e]/(k+1), sum_train_acc[e]/(k+1), sum_val_acc[e]/(k+1), e)
+
+            if k == 0 and (e+1) % configs.save_interval == 0:
+                save_model(model, e, checkpoint_dir)
