@@ -61,9 +61,14 @@ if __name__ == '__main__':
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     criterion = nn.CrossEntropyLoss()
+
     image_size = configs.input_size
-    transform_aug = transforms.Compose([transforms.Resize((int(image_size*1.2),int(image_size*1.2))),
-                                        transforms.RandomRotation(degrees=15),
+    rotate_degree = 15
+    margin_size2 = int(image_size * 1.2)
+    margin_size1 = int(margin_size2 * (np.sin(np.deg2rad(rotate_degree)) + np.cos(np.deg2rad(rotate_degree))))
+    transform_aug = transforms.Compose([transforms.Resize((margin_size1,margin_size1)),
+                                        transforms.RandomRotation(rotate_degree),
+                                        transforms.CenterCrop((margin_size2,margin_size2)),
                                         transforms.RandomCrop((image_size,image_size)),
                                         transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.05),
                                         transforms.ToTensor()])
