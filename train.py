@@ -81,7 +81,7 @@ if __name__ == '__main__':
 
     kf = StratifiedKFold(n_splits=configs.k, shuffle=True, random_state=0)
     sum_train_loss, sum_train_acc, sum_val_loss, sum_val_acc = np.zeros(configs.epoch), np.zeros(configs.epoch), np.zeros(configs.epoch), np.zeros(configs.epoch)
-    for k, (train_idxes, val_idxes) in enumerate(kf.split(_train_dataset)):
+    for k, (train_idxes, val_idxes) in enumerate(kf.split([X for X, _ in _train_dataset], [y for _, y in _train_dataset])):
         print(f'cross-validation {k:2d}:')
         model = select_model(configs.model).to(device)
         optimizer = torch.optim.AdamW(model.parameters(), weight_decay=0.01, lr=configs.lr)
