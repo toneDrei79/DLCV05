@@ -16,12 +16,12 @@ def accuracy(preds, labals):
     return np.count_nonzero(_preds==labals) / _preds.shape[0]
 
 
-def train(model, dataloader, criterion, optimizer):
+def train(model, dataloader, criterion, optimizer, epoch, device):
     model.train()
 
     sum_loss, sum_acc = 0, 0
     with tqdm(dataloader, total=len(dataloader)) as progress:
-        progress.set_description(f'train {e:3d}')
+        progress.set_description(f'train {epoch:3d}')
         for i, (images, labels) in enumerate(progress):
             optimizer.zero_grad()
             preds = model(images.to(device))
@@ -37,13 +37,13 @@ def train(model, dataloader, criterion, optimizer):
     return sum_loss/(i+1), sum_acc/(i+1)
 
 
-def val(model, dataloader, criterion):
+def val(model, dataloader, criterion, epoch, device):
     model.eval()
 
     sum_loss, sum_acc = 0, 0
     with torch.no_grad():
         with tqdm(dataloader, total=len(dataloader)) as progress:
-            progress.set_description(f'val   {e:3d}')
+            progress.set_description(f'val   {epoch:3d}')
             for i, (images, labels) in enumerate(progress):
                 preds = model(images.to(device))
                 loss = criterion(preds, labels.to(device))
@@ -91,8 +91,8 @@ if __name__ == '__main__':
         val_dataloader = DataLoader(val_dataset, batch_size=configs.batch, shuffle=True)
 
         for e in range(configs.epoch):
-            train_loss, train_acc = train(model, train_dataloader, criterion, optimizer)
-            val_loss, val_acc = val(model, val_dataloader, criterion)
+            train_loss, train_acc = train(model, train_dataloader, criterion, optimizer, e, device)
+            val_loss, val_acc = val(model, val_dataloader, criterion, e, device)
 
             sum_train_loss[e] += train_loss
             sum_train_acc[e] += train_acc
