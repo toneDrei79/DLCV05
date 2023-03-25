@@ -1,7 +1,7 @@
 
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Subset
-from sklearn.model_selection import KFold
+from sklearn.model_selection import StratifiedKFold
 from torchvision import datasets
 import torchvision.transforms as transforms
 import numpy as np
@@ -79,7 +79,7 @@ if __name__ == '__main__':
     configs.save_configs(checkpoint_dir)
     logger = Logger()
 
-    kf = KFold(n_splits=configs.k, shuffle=True, random_state=0)
+    kf = StratifiedKFold(n_splits=configs.k, shuffle=True, random_state=0)
     sum_train_loss, sum_train_acc, sum_val_loss, sum_val_acc = np.zeros(configs.epoch), np.zeros(configs.epoch), np.zeros(configs.epoch), np.zeros(configs.epoch)
     for k, (train_idxes, val_idxes) in enumerate(kf.split(_train_dataset)):
         print(f'cross-validation {k:2d}:')
