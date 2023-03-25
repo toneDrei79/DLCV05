@@ -90,6 +90,6 @@ if __name__ == '__main__':
     for e in range(configs.epoch):
         train_loss, train_acc = train(model, train_dataloader, criterion, optimizer, e, device)
         val_loss, val_acc = val(model, val_dataloader, criterion, e, device)
-        logger.log(train_loss, train_acc, val_loss, val_acc, e)
+        logger.log(train_loss, val_loss, train_acc, val_acc, e)
         if (e+1) % configs.save_interval == 0:
             save_model(model, e, checkpoint_dir)
