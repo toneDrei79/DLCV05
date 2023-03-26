@@ -14,13 +14,16 @@ from models import *
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data', type=str, default='./Flowers/Train/', help='directry path of the dataset ... default=./Flowers/Train/')
-    parser.add_argument('--model', type=str, default='net8', help='available models: net8, net11, vgg11, vgg11trained, vgg16, vgg16trained, resnet18, resnet18trained ... default=net8')
+    parser.add_argument('--model', type=str, default='net8', help='available models: net7, net11, vgg11, vgg16, resnet18 ... default=net8')
+    parser.add_argument('--dropout', action='store_true', help='whether do dropout ... default=True')
+    parser.add_argument('--batchnorm', action='store_true', help='whether do batchnorm ... default=True')
+    parser.add_argument('--pretrained', action='store_true', help='use pretrained model (vgg, resnet) ... default=False')
     parser.add_argument('--input_size', type=int, default=128, help='possible sizes: 128, 224(recommended for vgg, resnet), 256 ... default=128')
     parser.add_argument('--epoch', type=int, default=50, help='number of epoch ... default=50')
     parser.add_argument('--k', type=int, default=5, help='number of k-fold split ... default=5')
     parser.add_argument('--batch', type=int, default=32, help='batch size ... default=32')
     parser.add_argument('--lr', type=float, default=1e-4, help='learning rate ... default=1e-4')
-    parser.add_argument('--augment', type=bool, default=False, help='data augmentation ... default=False')
+    parser.add_argument('--augment', action='store_true', help='data augmentation ... default=False')
     parser.add_argument('--aug_rotate', type=int, default=15, help='rotation degrees of data augmentation ... default=15')
     parser.add_argument('--aug_color', type=float, default=0.1, help='color changing range of data augmentation ... default=0.1')
     parser.add_argument('--save_interval', type=int, default=10, help='interval for saving model ... default=10')
@@ -75,6 +78,7 @@ def val(model, dataloader, criterion, epoch, device):
 
 if __name__ == '__main__':
     args = get_args()
+    print(args.augment)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     criterion = nn.CrossEntropyLoss()
