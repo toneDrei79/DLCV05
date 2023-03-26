@@ -8,9 +8,12 @@ from torch.utils.tensorboard import SummaryWriter
 
 class Logger:
 
-    def __init__(self):
-        datetime_str = datetime.utcnow().strftime('%Y%m%d%H%M%S')
-        self.__summarywriter__ = SummaryWriter(log_dir=f'./.logs/{datetime_str}/')
+    def __init__(self, dir):
+        logs = './logs/'
+        if dir == None:
+            datetime_str = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+            dir = f'{datetime_str}/'
+        self.__summarywriter__ = SummaryWriter(log_dir=Path(logs, dir))
     
     def log(self, train_loss, val_loss, train_acc, val_acc, epoch):
         self.__summarywriter__.add_scalars('loss', {'train': train_loss, 'val': val_loss}, epoch)
