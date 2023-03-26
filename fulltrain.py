@@ -20,7 +20,7 @@ def get_args():
     parser.add_argument('--epoch', type=int, default=50, help='number of epoch ... default=50')
     parser.add_argument('--batch', type=int, default=32, help='batch size ... default=32')
     parser.add_argument('--lr', type=float, default=1e-4, help='learning rate ... default=1e-4')
-    parser.add_argument('--augment', type=bool, default=False, help='data augmentation ... default=False')
+    parser.add_argument('--augment', action='store_true', help='data augmentation ... default=False')
     parser.add_argument('--aug_rotate', type=int, default=15, help='rotation degrees of data augmentation ... default=15')
     parser.add_argument('--aug_color', type=float, default=0.1, help='color changing range of data augmentation ... default=0.1')
     parser.add_argument('--save_interval', type=int, default=10, help='interval for saving model ... default=10')
