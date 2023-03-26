@@ -11,7 +11,8 @@ from models import *
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data', type=str, default='./Flowers/Train/', help='directry path of the dataset ... default=./Flowers/Train/')
+    parser.add_argument('--traindata', type=str, default='./Flowers/Train/', help='directry path of the train dataset ... default=./Flowers/Train/')
+    parser.add_argument('--valdata', type=str, default='./Flowers/Test/', help='directry path of the val dataset ... default=./Flowers/Test/')
     parser.add_argument('--model', type=str, default='net7', help='available models: net5, net7, net11, vgg11, vgg16, resnet18 ... default=net7')
     parser.add_argument('--dropout', action='store_true', help='whether do dropout ... default=True')
     parser.add_argument('--batchnorm', action='store_true', help='whether do batchnorm ... default=True')
@@ -91,10 +92,10 @@ if __name__ == '__main__':
     transform_basic = transforms.Compose([transforms.Resize((image_size,image_size)),
                                           transforms.ToTensor()])
     if args.augment:
-        train_dataset = datasets.ImageFolder(root=args.data, transform=transform_aug)
+        train_dataset = datasets.ImageFolder(root=args.traindata, transform=transform_aug)
     else:
-        train_dataset = datasets.ImageFolder(root=args.data, transform=transform_basic)
-    val_dataset = datasets.ImageFolder(root=Path(Path(args.data).parent, 'Test'), transform=transform_basic)
+        train_dataset = datasets.ImageFolder(root=args.traindata, transform=transform_basic)
+    val_dataset = datasets.ImageFolder(root=args.valdata, transform=transform_basic)
 
     checkpoint_dir = mkdir_checkpoint(args.save)
     save_configs(args, checkpoint_dir)
