@@ -180,7 +180,15 @@ class Vgg11(nn.Module):
         else:
             _vgg11 = vgg11(weights=None)
         if batchnorm:
-            self.features = _vgg11.features[:9].append(nn.BatchNorm2d(256)).extend(_vgg11.features[9:19]).append(nn.BatchNorm2d(512)).extend(_vgg11.features[19:])
+            self.features = _vgg11.features[:4]\
+                                .append(nn.BatchNorm2d(128))\
+                                .extend(_vgg11.features[4:9])\
+                                .append(nn.BatchNorm2d(256))\
+                                .extend(_vgg11.features[9:15])\
+                                .append(nn.BatchNorm2d(512))\
+                                .extend(_vgg11.features[15:19])\
+                                .append(nn.BatchNorm2d(512))\
+                                .extend(_vgg11.features[19:])
         else:
             self.features = _vgg11.features
         if dropout:
