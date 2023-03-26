@@ -17,7 +17,7 @@ class Net7(nn.Module):
                                           nn.ReLU(),
                                           nn.MaxPool2d(kernel_size=4, stride=4),
                                           nn.Conv2d(in_channels=n2, out_channels=n3, kernel_size=3, stride=1, padding=1),
-                                          nn.BatchNorm2d(n2),
+                                          nn.BatchNorm2d(n3),
                                           nn.ReLU(),
                                           nn.MaxPool2d(kernel_size=2, stride=2))
         else:
