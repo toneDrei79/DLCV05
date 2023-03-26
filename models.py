@@ -170,7 +170,7 @@ class Net11(nn.Module):
 
 class Vgg11(nn.Module):
     
-    def __init__(self, n_class=10, image_size=128, pretrained=False, dropout=True):
+    def __init__(self, n_class=10, image_size=128, pretrained=False, batchnorm=False, dropout=True):
         super().__init__()
         
         from torchvision.models import vgg11
@@ -179,7 +179,10 @@ class Vgg11(nn.Module):
             _vgg11 = vgg11(weights=VGG11_Weights.IMAGENET1K_V1)
         else:
             _vgg11 = vgg11(weights=None)
-        self.features = _vgg11.features
+        if batchnorm:
+            self.features = _vgg11.features[:9].append(nn.BatchNorm2d(256)).extend(_vgg11.features[9:19]).append(nn.BatchNorm2d(512))
+        else:
+            self.features = _vgg11.features
         if dropout:
             self.classifier = nn.Sequential(nn.Linear(in_features=512*int(image_size/32*image_size/32), out_features=512),
                                             nn.Dropout(0.5),
@@ -298,7 +301,7 @@ def select_model(key, dropout=True, batchnorm=True, pretrained=False):
     elif key == 'net11':
         return Net11(batchnorm=batchnorm, dropout=dropout)
     elif key == 'vgg11':
-        return Vgg11(n_class=10, pretrained=pretrained, dropout=dropout)
+        return Vgg11(n_class=10, pretrained=pretrained, batchnorm=batchnorm, dropout=dropout)
     elif key == 'vgg16':
         return Vgg16(n_class=10, pretrained=pretrained, dropout=dropout)
     elif key == 'resnet18':
@@ -325,4 +328,4 @@ def get_args():
 if __name__ == '__main__':
     args = get_args()
     model = select_model(args.model, args.dropout, args.batchnorm, args.pretrained)
-    print(model)
+    # print(model)
