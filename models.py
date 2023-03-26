@@ -179,18 +179,7 @@ class Vgg11(nn.Module):
             _vgg11 = vgg11(weights=VGG11_Weights.IMAGENET1K_V1)
         else:
             _vgg11 = vgg11(weights=None)
-        if batchnorm:
-            self.features = _vgg11.features[:4]\
-                                .append(nn.BatchNorm2d(128))\
-                                .extend(_vgg11.features[4:9])\
-                                .append(nn.BatchNorm2d(256))\
-                                .extend(_vgg11.features[9:15])\
-                                .append(nn.BatchNorm2d(512))\
-                                .extend(_vgg11.features[15:19])\
-                                .append(nn.BatchNorm2d(512))\
-                                .extend(_vgg11.features[19:])
-        else:
-            self.features = _vgg11.features
+        self.features = _vgg11.features
         if dropout:
             self.classifier = nn.Sequential(nn.Linear(in_features=512*int(image_size/32*image_size/32), out_features=512),
                                             nn.Dropout(0.5),
@@ -309,7 +298,7 @@ def select_model(key, dropout=True, batchnorm=True, pretrained=False):
     elif key == 'net11':
         return Net11(batchnorm=batchnorm, dropout=dropout)
     elif key == 'vgg11':
-        return Vgg11(n_class=10, pretrained=pretrained, batchnorm=batchnorm, dropout=dropout)
+        return Vgg11(n_class=10, pretrained=pretrained, dropout=dropout)
     elif key == 'vgg16':
         return Vgg16(n_class=10, pretrained=pretrained, dropout=dropout)
     elif key == 'resnet18':
