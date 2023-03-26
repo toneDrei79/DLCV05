@@ -14,13 +14,15 @@ def get_args():
     parser.add_argument('--traindata', type=str, default='./Flowers/Train/', help='directry path of the train dataset ... default=./Flowers/Train/')
     parser.add_argument('--valdata', type=str, default='./Flowers/Test/', help='directry path of the val dataset ... default=./Flowers/Test/')
     parser.add_argument('--model', type=str, default='net7', help='available models: net5, net7, net11, vgg11, vgg16, resnet18 ... default=net7')
-    parser.add_argument('--dropout', action='store_true', help='whether do dropout ... default=True')
-    parser.add_argument('--batchnorm', action='store_true', help='whether do batchnorm ... default=True')
-    parser.add_argument('--pretrained', action='store_true', help='use pretrained model (vgg, resnet) ... default=False')
+    parser.add_argument('--dropout', action='store_true', help='whether do dropout')
+    parser.add_argument('--batchnorm', action='store_true', help='whether do batchnorm')
+    parser.add_argument('--pretrained', action='store_true', help='use pretrained model (vgg, resnet)')
     parser.add_argument('--input_size', type=int, default=128, help='possible sizes: 128, 224(recommended for vgg, resnet), 256 ... default=128')
     parser.add_argument('--epoch', type=int, default=50, help='number of epoch ... default=50')
     parser.add_argument('--batch', type=int, default=32, help='batch size ... default=32')
     parser.add_argument('--lr', type=float, default=1e-4, help='learning rate ... default=1e-4')
+    parser.add_argument('--lr_scheduler', action='store_true', help='use exponential lr scheduler')
+    parser.add_argument('--lr_gamma', type=float, default=0.95, help='gamma of exponential lr scheduler ... default=0.95')
     parser.add_argument('--augment', action='store_true', help='data augmentation ... default=False')
     parser.add_argument('--aug_rotate', type=int, default=15, help='rotation degrees of data augmentation ... default=15')
     parser.add_argument('--aug_color', type=float, default=0.1, help='color changing range of data augmentation ... default=0.1')
@@ -103,11 +105,15 @@ if __name__ == '__main__':
 
     model = select_model(args.model, args.dropout, args.batchnorm, args.pretrained).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), weight_decay=0.01, lr=args.lr)
+    if args.lr_scheduler:
+        scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=args.lr_gamma)
     train_dataloader = DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
     val_dataloader = DataLoader(val_dataset, batch_size=args.batch, shuffle=True)
     for e in range(args.epoch):
         train_loss, train_acc = train(model, train_dataloader, criterion, optimizer, e, device)
         val_loss, val_acc = val(model, val_dataloader, criterion, e, device)
+        if args.lr_scheduler:
+            scheduler.step()
         logger.log(train_loss, val_loss, train_acc, val_acc, e)
         if (e+1) % args.save_interval == 0:
             save_model(model, e, checkpoint_dir)
