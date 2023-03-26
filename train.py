@@ -102,7 +102,7 @@ if __name__ == '__main__':
 
     checkpoint_dir = mkdir_checkpoint(args.save)
     save_configs(args, checkpoint_dir)
-    logger = Logger()
+    logger = Logger(checkpoint_dir)
 
     kf = StratifiedKFold(n_splits=args.k, shuffle=True, random_state=0)
     sum_train_loss, sum_train_acc, sum_val_loss, sum_val_acc = np.zeros(args.epoch), np.zeros(args.epoch), np.zeros(args.epoch), np.zeros(args.epoch)

@@ -8,7 +8,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 class Logger:
 
-    def __init__(self, dir):
+    def __init__(self, dir=None):
         logs = './logs/'
         if dir == None:
             datetime_str = datetime.utcnow().strftime('%Y%m%d%H%M%S')
