@@ -27,12 +27,14 @@ def mkdir_checkpoint(dir):
 
 
 def save_configs(configs, dir):
-    path = Path(dir, 'configs.json')
+    checkpoints = './checkpoints/'
+    path = Path(checkpoints, dir, 'configs.json')
     with open(path, mode='w') as f:
         json.dump(vars(configs), f, indent=4)
 
 
 def save_model(model, epoch, dir):
-    path = Path(dir, f'{epoch:03d}.pkl')
+    checkpoints = './checkpoints/'
+    path = Path(checkpoints, dir, f'{epoch:03d}.pkl')
     with open(path, mode='wb') as f:
         pickle.dump(model, f)
