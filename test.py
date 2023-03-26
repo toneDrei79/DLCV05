@@ -53,11 +53,13 @@ if __name__ == '__main__':
         jsondata = json.load(f)
         image_size = jsondata['input_size']
         batch = jsondata['batch']
+        model_type = jsondata['model']
     transform = transforms.Compose([transforms.Resize((image_size,image_size)),
                                     transforms.ToTensor()])
     dataset = datasets.ImageFolder(root=args.data, transform=transform)
     dataloader = DataLoader(dataset, batch_size=batch, shuffle=True)
 
     loss, acc = test(model, dataloader, criterion, device)
+    print(f'model: {model_type}:')
     print(f'loss: {loss:7.5f}')
     print(f'acc : {acc:7.5f}')
