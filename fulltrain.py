@@ -12,7 +12,10 @@ from models import *
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data', type=str, default='./Flowers/Train/', help='directry path of the dataset ... default=./Flowers/Train/')
-    parser.add_argument('--model', type=str, default='net8', help='available models: net8, net11, vgg11, vgg11trained, vgg16, vgg16trained, resnet18, resnet18trained ... default=net8')
+    parser.add_argument('--model', type=str, default='net8', help='available models: net7, net11, vgg11, vgg16, resnet18 ... default=net8')
+    parser.add_argument('--dropout', action='store_true', help='whether do dropout ... default=True')
+    parser.add_argument('--batchnorm', action='store_true', help='whether do batchnorm ... default=True')
+    parser.add_argument('--pretrained', action='store_true', help='use pretrained model (vgg, resnet) ... default=False')
     parser.add_argument('--input_size', type=int, default=128, help='possible sizes: 128, 224(recommended for vgg, resnet), 256 ... default=128')
     parser.add_argument('--epoch', type=int, default=50, help='number of epoch ... default=50')
     parser.add_argument('--batch', type=int, default=32, help='batch size ... default=32')
@@ -95,9 +98,9 @@ if __name__ == '__main__':
 
     checkpoint_dir = mkdir_checkpoint(args.save)
     save_configs(args, checkpoint_dir)
-    logger = Logger()
+    logger = Logger(checkpoint_dir)
 
-    model = select_model(args.model).to(device)
+    model = select_model(args.model, args.dropout, args.batchnorm, args.pretrained).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), weight_decay=0.01, lr=args.lr)
     train_dataloader = DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
     val_dataloader = DataLoader(val_dataset, batch_size=args.batch, shuffle=True)

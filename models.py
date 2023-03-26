@@ -247,7 +247,7 @@ class ResNet18(nn.Module):
         return y
 
 
-def select_model(key, dropout, batchnorm, pretrained):
+def select_model(key, dropout=True, batchnorm=True, pretrained=False):
     if key == 'net7':
         return Net7(batchnorm=batchnorm, dropout=dropout)
     elif key == 'net11':

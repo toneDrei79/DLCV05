@@ -108,7 +108,7 @@ if __name__ == '__main__':
     sum_train_loss, sum_train_acc, sum_val_loss, sum_val_acc = np.zeros(args.epoch), np.zeros(args.epoch), np.zeros(args.epoch), np.zeros(args.epoch)
     for k, (train_idxes, val_idxes) in enumerate(kf.split([X for X, _ in _train_dataset], [y for _, y in _train_dataset])):
         print(f'cross-validation {k:2d}:')
-        model = select_model(args.model).to(device)
+        model = select_model(args.model, args.dropout, args.batchnorm, args.pretrained).to(device)
         optimizer = torch.optim.AdamW(model.parameters(), weight_decay=0.01, lr=args.lr)
         train_dataset = Subset(_train_dataset, train_idxes)
         val_dataset = Subset(_val_dataset, val_idxes)
