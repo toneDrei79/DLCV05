@@ -18,6 +18,8 @@ def get_args():
     parser.add_argument('--batch', type=int, default=32, help='batch size ... default=32')
     parser.add_argument('--lr', type=float, default=1e-4, help='learning rate ... default=1e-4')
     parser.add_argument('--augment', type=bool, default=False, help='data augmentation ... default=False')
+    parser.add_argument('--aug_rotate', type=int, default=15, help='rotation degrees of data augmentation ... default=15')
+    parser.add_argument('--aug_color', type=float, default=0.1, help='color changing range of data augmentation ... default=0.1')
     parser.add_argument('--save_interval', type=int, default=10, help='interval for saving model ... default=10')
     parser.add_argument('--save', type=str, default=None, help='save dir path for trained models ... default=None')
     return parser.parse_args()
@@ -75,14 +77,13 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()
 
     image_size = args.input_size
-    rotate_degree = 15
     margin_size2 = int(image_size * 1.2)
-    margin_size1 = int(margin_size2 * (np.sin(np.deg2rad(rotate_degree)) + np.cos(np.deg2rad(rotate_degree))))
+    margin_size1 = int(margin_size2 * (np.sin(np.deg2rad(args.aug_rotate)) + np.cos(np.deg2rad(args.aug_rotate))))
     transform_aug = transforms.Compose([transforms.Resize((margin_size1,margin_size1)),
-                                        transforms.RandomRotation(rotate_degree),
+                                        transforms.RandomRotation(args.aug_rotate),
                                         transforms.CenterCrop((margin_size2,margin_size2)),
                                         transforms.RandomCrop((image_size,image_size)),
-                                        transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.05),
+                                        transforms.ColorJitter(brightness=args.aug_color, contrast=args.aug_color, saturation=args.aug_color, hue=args.aug_color),
                                         transforms.ToTensor()])
     transform_basic = transforms.Compose([transforms.Resize((image_size,image_size)),
                                           transforms.ToTensor()])
