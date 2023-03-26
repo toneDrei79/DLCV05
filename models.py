@@ -328,4 +328,4 @@ def get_args():
 if __name__ == '__main__':
     args = get_args()
     model = select_model(args.model, args.dropout, args.batchnorm, args.pretrained)
-    # print(model)
+    print(model)
