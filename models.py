@@ -136,7 +136,6 @@ class Vgg11(nn.Module):
         else:
             _vgg11 = vgg11(weights=None)
         self.features = _vgg11.features
-        print(_vgg11.classifier)
         if dropout:
             self.classifier = nn.Sequential(nn.Linear(in_features=512*int(image_size/32*image_size/32), out_features=512),
                                             nn.Dropout(0.5),
