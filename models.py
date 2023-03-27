@@ -2,6 +2,36 @@ import torch
 import torch.nn as nn
 
 
+class Net3(nn.Module):
+
+    def __init__(self, n1=32, n2=256, n_class=10, image_size=128, batchnorm=True, dropout=True):
+        super().__init__()
+        if batchnorm:
+            self.features = nn.Sequential(nn.Conv2d(in_channels=3, out_channels=n1, kernel_size=3, stride=1, padding=1),
+                                          nn.BatchNorm2d(n1),
+                                          nn.ReLU(),
+                                          nn.MaxPool2d(kernel_size=16, stride=16))
+        else:
+            self.features = nn.Sequential(nn.Conv2d(in_channels=3, out_channels=n1, kernel_size=3, stride=1, padding=1),
+                                          nn.ReLU(),
+                                          nn.MaxPool2d(kernel_size=16, stride=16))
+        if dropout:
+            self.classifier = nn.Sequential(nn.Linear(in_features=n1*int(image_size/16*image_size/16), out_features=n2),
+                                            nn.Dropout(0.5),
+                                            nn.ReLU(),
+                                            nn.Linear(in_features=n2, out_features=n_class))
+        else:
+            self.classifier = nn.Sequential(nn.Linear(in_features=n1*int(image_size/16*image_size/16), out_features=n2),
+                                            nn.ReLU(),
+                                            nn.Linear(in_features=n2, out_features=n_class))
+
+    def forward(self, x):
+        z = self.features(x)
+        z = torch.flatten(z, start_dim=1)
+        y = self.classifier(z)
+        return y
+
+
 class Net5(nn.Module):
 
     def __init__(self, n1=16, n2=32, n3=512, n_class=10, image_size=128, batchnorm=True, dropout=True):
@@ -291,6 +321,8 @@ class ResNet18(nn.Module):
 
 
 def select_model(key, dropout=True, batchnorm=True, pretrained=False):
+    if key == 'net3':
+        return Net3(batchnorm=batchnorm, dropout=dropout)
     if key == 'net5':
         return Net5(batchnorm=batchnorm, dropout=dropout)
     if key == 'net7':

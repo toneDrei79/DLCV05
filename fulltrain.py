@@ -13,7 +13,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--traindata', type=str, default='./Flowers/Train/', help='directry path of the train dataset ... default=./Flowers/Train/')
     parser.add_argument('--valdata', type=str, default='./Flowers/Test/', help='directry path of the val dataset ... default=./Flowers/Test/')
-    parser.add_argument('--model', type=str, default='net7', help='available models: net5, net7, net11, vgg11, vgg16, resnet18 ... default=net7')
+    parser.add_argument('--model', type=str, default='net7', help='available models: net3, net5, net7, net11, vgg11, vgg16, resnet18 ... default=net7')
     parser.add_argument('--dropout', action='store_true', help='whether do dropout')
     parser.add_argument('--batchnorm', action='store_true', help='whether do batchnorm')
     parser.add_argument('--pretrained', action='store_true', help='use pretrained model (vgg, resnet)')
