@@ -129,5 +129,5 @@ if __name__ == '__main__':
             sum_val_acc[e] += val_acc
             logger.log(sum_train_loss[e]/(k+1), sum_val_loss[e]/(k+1), sum_train_acc[e]/(k+1), sum_val_acc[e]/(k+1), e)
 
-            if k == 0 and (e+1) % args.save_interval == 0:
-                save_model(model, e, checkpoint_dir)
+            if (e+1) % args.save_interval == 0:
+                save_model(model, e, k, checkpoint_dir)

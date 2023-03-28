@@ -116,4 +116,4 @@ if __name__ == '__main__':
             scheduler.step()
         logger.log(train_loss, val_loss, train_acc, val_acc, e)
         if (e+1) % args.save_interval == 0:
-            save_model(model, e, checkpoint_dir)
+            save_model(model, e, None, checkpoint_dir)

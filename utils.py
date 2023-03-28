@@ -36,8 +36,11 @@ def save_configs(configs, dir):
         json.dump(vars(configs), f, indent=4)
 
 
-def save_model(model, epoch, dir):
+def save_model(model, epoch, k, dir):
     checkpoints = './checkpoints/'
-    path = Path(checkpoints, dir, f'{epoch:03d}.pkl')
+    if k != None:
+        path = Path(checkpoints, dir, f'{epoch:03d}_{k:1d}.pkl')
+    else:
+        path = Path(checkpoints, dir, f'{epoch:03d}.pkl')
     with open(path, mode='wb') as f:
         pickle.dump(model, f)
