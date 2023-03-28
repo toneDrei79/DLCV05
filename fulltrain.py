@@ -22,7 +22,7 @@ def get_args():
     parser.add_argument('--batch', type=int, default=32, help='batch size ... default=32')
     parser.add_argument('--lr', type=float, default=1e-4, help='learning rate ... default=1e-4')
     parser.add_argument('--lr_scheduler', action='store_true', help='use exponential lr scheduler')
-    parser.add_argument('--lr_gamma', type=float, default=0.97, help='gamma of exponential lr scheduler ... default=0.97')
+    parser.add_argument('--lr_gamma', type=float, default=0.95, help='gamma of exponential lr scheduler ... default=0.95')
     parser.add_argument('--augment', action='store_true', help='do data augmentation')
     parser.add_argument('--aug_rotate', type=int, default=15, help='rotation degrees of data augmentation (0~45) ... default=15')
     parser.add_argument('--aug_color', type=float, default=0.1, help='color changing range of data augmentation ... default=0.1')
