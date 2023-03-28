@@ -25,8 +25,8 @@ def get_args():
     parser.add_argument('--lr', type=float, default=1e-4, help='learning rate ... default=1e-4')
     parser.add_argument('--lr_scheduler', action='store_true', help='use exponential lr scheduler')
     parser.add_argument('--lr_gamma', type=float, default=0.95, help='gamma of exponential lr scheduler ... default=0.95')
-    parser.add_argument('--augment', action='store_true', help='data augmentation ... default=False')
-    parser.add_argument('--aug_rotate', type=int, default=15, help='rotation degrees of data augmentation ... default=15')
+    parser.add_argument('--augment', action='store_true', help='do data augmentation')
+    parser.add_argument('--aug_rotate', type=int, default=15, help='rotation degrees of data augmentation (0~45) ... default=15')
     parser.add_argument('--aug_color', type=float, default=0.1, help='color changing range of data augmentation ... default=0.1')
     parser.add_argument('--save_interval', type=int, default=10, help='interval for saving model ... default=10')
     parser.add_argument('--save', type=str, default=None, help='save dir path for trained models ... default=None')
@@ -85,13 +85,14 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()
 
     image_size = args.input_size
-    margin_size2 = int(image_size * 1.2)
-    margin_size1 = int(margin_size2 * (np.sin(np.deg2rad(args.aug_rotate)) + np.cos(np.deg2rad(args.aug_rotate))))
-    transform_aug = transforms.Compose([transforms.Resize((margin_size1,margin_size1)),
+    margin_size1 = int(image_size*1.1)
+    margin_size2 = int(margin_size1 * (np.sin(np.deg2rad(args.aug_rotate)) + np.cos(np.deg2rad(args.aug_rotate))))
+    transform_aug = transforms.Compose([transforms.Resize((margin_size2,margin_size2)),
                                         transforms.RandomRotation(args.aug_rotate),
-                                        transforms.CenterCrop((margin_size2,margin_size2)),
+                                        transforms.RandomHorizontalFlip(p=0.5),
+                                        transforms.CenterCrop((margin_size1,margin_size1)),
                                         transforms.RandomCrop((image_size,image_size)),
-                                        transforms.ColorJitter(brightness=args.aug_color, contrast=args.aug_color, saturation=args.aug_color, hue=args.aug_color),
+                                        transforms.ColorJitter(brightness=args.aug_color, contrast=args.aug_color, saturation=args.aug_color, hue=args.aug_color*0.5),
                                         transforms.ToTensor()])
     transform_basic = transforms.Compose([transforms.Resize((image_size,image_size)),
                                           transforms.ToTensor()])
