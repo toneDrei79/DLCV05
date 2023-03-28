@@ -80,7 +80,6 @@ def val(model, dataloader, criterion, epoch, device):
 
 if __name__ == '__main__':
     args = get_args()
-    print(args.augment)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     criterion = nn.CrossEntropyLoss()
