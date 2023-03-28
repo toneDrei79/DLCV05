@@ -85,13 +85,11 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()
 
     image_size = args.input_size
-    margin_size1 = int(image_size*1.1)
-    margin_size2 = int(margin_size1 * (np.sin(np.deg2rad(args.aug_rotate)) + np.cos(np.deg2rad(args.aug_rotate))))
-    transform_aug = transforms.Compose([transforms.Resize((margin_size2,margin_size2)),
+    margin_size = int(image_size * (np.sin(np.deg2rad(args.aug_rotate)) + np.cos(np.deg2rad(args.aug_rotate))))
+    transform_aug = transforms.Compose([transforms.Resize((margin_size,margin_size)),
                                         transforms.RandomRotation(args.aug_rotate),
                                         transforms.RandomHorizontalFlip(p=0.5),
-                                        transforms.CenterCrop((margin_size1,margin_size1)),
-                                        transforms.RandomCrop((image_size,image_size)),
+                                        transforms.CenterCrop((image_size,image_size)),
                                         transforms.ColorJitter(brightness=args.aug_color, contrast=args.aug_color, saturation=args.aug_color, hue=args.aug_color*0.5),
                                         transforms.ToTensor()])
     transform_basic = transforms.Compose([transforms.Resize((image_size,image_size)),
